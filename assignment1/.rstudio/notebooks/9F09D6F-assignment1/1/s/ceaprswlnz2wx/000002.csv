@@ -1,0 +1,8 @@
+"0","#FILTER OUT GENES THAT HAVE LOW COUNTS"
+"0","#use edgeR to calculate counts per million (cpms)"
+"0","cpms = cpm(diabetic.SAHA.DMSO[2:ncol(diabetic.SAHA.DMSO)])"
+"0","rownames(cpms) <- diabetic.SAHA.DMSO[,1]"
+"0","#use cpms to determine which of our ENSGs to throw out"
+"0","keep = rowSums(cpms >1) >=3"
+"0","diabetic.SAHA.DMSO.filtered = diabetic.SAHA.DMSO[keep,]"
+"0","rownames(diabetic.SAHA.DMSO.filtered) <- diabetic.SAHA.DMSO.filtered$Geneid"

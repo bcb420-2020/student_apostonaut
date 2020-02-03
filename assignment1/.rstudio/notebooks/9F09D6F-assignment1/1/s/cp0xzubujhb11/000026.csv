@@ -1,0 +1,7 @@
+"0","#WHY ARE MY NORMALIZED AND ORIGINAL VALUES THE SAME??
+identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
+"
+"1","[1]"
+"1"," TRUE"
+"1","
+"

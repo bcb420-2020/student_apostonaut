@@ -1,0 +1,1442 @@
+0:if (! requireNamespace("GEOquery", quietly=TRUE)) {
+0:install.packages("GEOquery")
+0:}
+0:if (!requireNamespace("BiocManager", quietly = TRUE))
+0:install.packages("BiocManager")
+0:BiocManager::install("GEOquery")
+0:getGEO()
+0:library("GEOquery")
+0:if (!requireNamespace("BiocManager", quietly = TRUE))
+0:install.packages("BiocManager")
+0:BiocManager::install("GEOquery")
+0:if (!requireNamespace("GEOmetadb", quietly = TRUE))
+0:BiocManager::install("GEOmetadb")
+0:library("GEOmetadb")
+0:if (!requireNamespace("GEOmetadb", quietly = TRUE))
+0:BiocManager::install("GEOmetadb")
+0:warnings()
+1580426220717:library("GEOmetadb")
+1580426307654:library("GEOmetadb")
+1580426456574:gse <- getGEO("GSE77108",GSEMatrix=FALSE)
+1580426465703:gse
+1580426497907:colnames(gse_
+1580426504729:colnames(gse)
+1580426507024:colnames(gse)
+1580426630124:current_gpl <- names(GPLList(gse))[1]
+1580426637177:current_gpl
+1580426806440:#GET THE EXPRESSION DATA
+1580426806455:sfiles = getGEOSuppFiles('GSE77108')
+1580426822796:fnames = rownames(sfiles)
+1580426827937:fnames
+1580426833680:# there is only one supplemental file
+1580426833695:diabetic.HDAC = read.delim(fnames[1],header=TRUE,
+1580426833709:check.names = FALSE)
+1580426839323:diabetic.HDAC
+1580426893502:# there is only one supplemental file
+1580426893521:diabetic.HDAC = read.delim(fnames[1],header=TRUE,
+1580426893537:check.names = FALSE)
+1580426905111:colnames(diabetic.HDAC)
+1580426940926:grep(colnames(diabetic.HDAC), SAHA)
+1580426946207:grep(colnames(diabetic.HDAC), "SAHA")
+1580426967100:grep("SAHA", colnames(diabetic.HDAC))
+1580426984048:diabetic.HDAC[grep("SAHA", colnames(diabetic.HDAC))]
+1580426996154:head(diabetic.HDAC[grep("SAHA", colnames(diabetic.HDAC))])
+1580427164150:diabetic.HDAC.SAHA <- head(diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))])
+1580427171746:diabetic.HDAC.SAHA
+1580427323890:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580427323901:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580427333154:dim(diabetic.HDAC.SAHA )
+1580427349804:ls()
+1580427362112:rm(list=ls())
+1580427367129:library("GEOmetadb")
+1580427376220:#GET THE EXPRESSION DATA
+1580427376235:sfiles = getGEOSuppFiles('GSE77108')
+1580427381029:fnames = rownames(sfiles)
+1580427384213:# there is only one supplemental file
+1580427384232:diabetic.HDAC = read.delim(fnames[1],header=TRUE,
+1580427384245:check.names = FALSE)
+1580427388235:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580427388253:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580427389426:dim(diabetic.HDAC.SAHA )
+1580427501704:library("edgeR")
+1580427537632:if (!requireNamespace("edgeR", quietly = TRUE))
+1580427538004:BiocManager::install("edgeR")
+1580427764668:library("edgeR")
+1580427896294:library("GEOmetadb")
+1580427899514:library("edgeR")
+1580427915362:#GET THE EXPRESSION DATA
+1580427915377:sfiles = getGEOSuppFiles('GSE77108')
+1580427939012:#GET THE EXPRESSION DATA
+1580427939030:sfiles = getGEOSuppFiles('GSE77108')
+1580427968106:#GET THE EXPRESSION DATA
+1580427968127:sfiles = getGEOSuppFiles('GSE77108')
+1580428009122:#GET THE EXPRESSION DATA
+1580428009142:sfiles = getGEOSuppFiles('GSE77108')
+1580428019365:sfiles
+1580428041226:fnames = rownames(sfiles)
+1580428041872:# there is only one supplemental file
+1580428041890:diabetic.HDAC = read.delim(fnames[1],header=TRUE,
+1580428041908:check.names = FALSE)
+1580428042735:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580428042749:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580428043642:dim(diabetic.HDAC.SAHA )
+1580428119299:#filter out genes that have low counts
+1580428119316:cpms = cpm([diabetic.HDAC.SAHA,2:7])
+1580428131114:#filter out genes that have low counts
+1580428131130:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580428140741:head(cpms)
+1580428223822:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580428226786:head(cpms)
+1580428272776:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580428275449:keep = rowSums(cpms >1) >=3
+1580428277017:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580428296451:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580428296467:#use edgeR to calculate counts per million (cpms)
+1580428296481:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580428310010:head(cpms)
+1580428318253:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580428325136:keep = rowSums(cpms >1) >=3
+1580428378579:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580428390330:head(diabetic.HDAC.SAHA.filtered)
+1580428397737:dim(diabetic.HDAC.SAHA.filtered)
+1580430284054:#Distribution of our data - Boxplot
+1580430284072:data2plot <- log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7]))
+1580430285481:boxplot(data2plot, xlab = "Samples", ylab = "log2 CPM",
+1580430285501:las = 2, cex = 0.5, cex.lab = 0.5,
+1580430285520:cex.axis = 0.5, main = "normal and diabetic cells treated with SAHA")
+1580430397228:#Distribution of our data - Density plot
+1580430397244:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580430398790:#calculate the limits across all the samples
+1580430398807:xlim <- 0; ylim <- 0
+1580430399648:for (i in 1:length(counts_density)) {
+1580430399665:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580430399679:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580430399690:}
+1580430402190:cols <- rainbow(length(counts_density))
+1580430403272:ltys <- rep(1, length(counts_density))
+1580430404005:#plot the first density plot to initialize the plot
+1580430404026:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580430404043:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580430405390:#plot each line
+1580430405407:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580430406458:#create legend
+1580430406481:legend("topright", colnames(data2plot),
+1580430406496:col=cols, lty=ltys, cex=0.75,
+1580430406512:border ="blue",  text.col = "green4",
+1580430406523:merge = TRUE, bg = "gray90")
+1580431040158:diabetic.HDAC.SAHA.filtered$Geneid
+1580431107389:#APPLYING TMM TO OUR DATASET
+1580431107401:filtered_data_matrix <- as.matrix(diabetic.HDAC.SAHA.filtered[,2:7])
+1580431109909:rownames(filtered_data_matrix) <- diabetic.HDAC.SAHA.filtered$Geneid
+1580431111476:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580431121657:samples
+1580431127625:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580431176980:#d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580431176999:d = DGEList(counts=filtered_data_matrix)
+1580431179111:d = calcNormFactors(d)
+1580431197366:normalized_counts <- cpm(d)
+1580431225541:plotMDS(d, labels=rownames(samples),
+1580431225554:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580431228617:plotMDS(d, labels=rownames(samples),
+1580431228634:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580431250173:rownames(samples)
+1580431260506:samples
+1580431318304:current_gpl_info$cell_type
+1580431321776:#METADATA
+1580431321791:gse <- getGEO("GSE77108",GSEMatrix=FALSE)
+1580431324067:colnames(gse)
+1580431325094:current_gpl <- names(GPLList(gse))[1]
+1580431325914:current_gpl_info <- Meta(getGEO(current_gpl))
+1580431330781:current_gpl_info$title
+1580431330801:current_gpl_info$last_update_date
+1580431330813:current_gpl_info$organism
+1580431330830:current_gpl_info$cell_type
+1580431340932:current_gpl_info$samples
+1580431946129:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580431946145:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2,3)]}))
+1580431948785:colnames(samples) <- colnames(ca125_exp)[3:22]
+1580431949243:rownames(samples) <- c("patients","cell_type")
+1580431975448:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580431976322:rownames(samples) <- c("patients","cell_type")
+1580431976816:samples <- data.frame(t(samples))
+1580431980923:plotMDS(d, labels=rownames(samples),
+1580431980936:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580432095823:#estimate common and tagwise dispersion
+1580432095836:model_design <- model.matrix(~samples$patients + samples$cell_type+0)
+1580432106524:d <- estimateDisp(d, model_design)
+1580432111984:#estimate common and tagwise dispersion
+1580432111998:model_design <- model.matrix(~samples$patients + samples$cell_type+0)
+1580432129392:#estimate common and tagwise dispersion
+1580432129410:model_design <- model.matrix(samples$patients + samples$cell_type+0)
+1580432161125:factor(samples$cell_type)
+1580432169349:samples$cell_type
+1580669496077:library("GEOmetadb")
+1580669498055:library("edgeR")
+1580669515987:gse <- getGEO("GSE77108",GSEMatrix=FALSE)
+1580669516537:colnames(gse)
+1580669516551:current_gpl <- names(GPLList(gse))[1]
+1580669516562:current_gpl_info <- Meta(getGEO(current_gpl))
+1580669520504:current_gpl_info$title
+1580669520526:current_gpl_info$last_update_date
+1580669520543:current_gpl_info$organism
+1580669529189:#GET THE EXPRESSION DATA
+1580669529200:sfiles = getGEOSuppFiles('GSE77108')
+1580669530005:fnames = rownames(sfiles)
+1580669544862:diabetic.HDAC = read.delim(fnames[1],header=TRUE,
+1580669544880:check.names = FALSE)
+1580669553715:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580669561180:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580669561195:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2,3)]}))
+1580669561599:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580669561954:rownames(samples) <- c("patients","cell_type")
+1580669563803:samples <- data.frame(t(samples))
+1580669569652:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580669569669:#use edgeR to calculate counts per million (cpms)
+1580669569680:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580669570217:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580669571649:#use cpms to determine which of our ENSGs to throw out
+1580669571666:keep = rowSums(cpms >1) >=3
+1580669572089:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580669574463:#Distribution of our data - Boxplot
+1580669574478:data2plot <- log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7]))
+1580669575920:boxplot(data2plot, xlab = "Samples", ylab = "log2 CPM",
+1580669575935:las = 2, cex = 0.5, cex.lab = 0.5,
+1580669575944:cex.axis = 0.5, main = "normal and diabetic cells treated with SAHA")
+1580669578279:#Distribution of our data - Density plot
+1580669578294:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580669579770:#calculate the limits across all the samples
+1580669579781:xlim <- 0; ylim <- 0
+1580669580681:for (i in 1:length(counts_density)) {
+1580669580697:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580669580712:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580669580724:}
+1580669581514:cols <- rainbow(length(counts_density))
+1580669582103:ltys <- rep(1, length(counts_density))
+1580669582656:#plot the first density plot to initialize the plot
+1580669582672:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580669582685:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580669583361:#plot each line
+1580669583375:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580669584139:#create legend
+1580669584164:legend("topright", colnames(data2plot),
+1580669584179:col=cols, lty=ltys, cex=0.75,
+1580669584197:border ="blue",  text.col = "green4",
+1580669584213:merge = TRUE, bg = "gray90")
+1580669584827:#APPLYING TMM TO OUR DATASET
+1580669584842:filtered_data_matrix <- as.matrix(diabetic.HDAC.SAHA.filtered[,2:7])
+1580669585354:rownames(filtered_data_matrix) <- diabetic.HDAC.SAHA.filtered$Geneid
+1580669585825:#d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580669585848:d = DGEList(counts=filtered_data_matrix)
+1580669586194:d = calcNormFactors(d)
+1580669586574:normalized_counts <- cpm(d)
+1580669586988:plotMDS(d, labels=rownames(samples),
+1580669587005:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580669587459:#estimate common and tagwise dispersion
+1580669587469:model_design <- model.matrix(~samples$patients + samples$cell_type+0)
+1580669587707:d <- estimateDisp(d, model_design)
+1580669593518:#estimate common and tagwise dispersion
+1580669593539:model_design <- model.matrix(~samples$patients + samples$cell_type+0)
+1580669602726:~samples$patients
+1580669615302:samples$patients
+1580669628314:samples
+1580669951832:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580669960647:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580669960657:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2,3)]}))
+1580669966045:colnames(samples)
+1580669973227:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580669976325:colnames(samples)
+1580669987408:samples
+1580670027792:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580670027808:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580670030505:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670035524:samples
+1580670043180:rownames(samples) <- c("cell_type")
+1580670048130:samples <- data.frame(t(samples))
+1580670052317:samples
+1580670427777:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580670427799:grep("D", rownames(samples))
+1580670453517:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580670453536:grep("D", rownames(samples))
+1580670456718:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580670456732:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580670458203:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670459163:rownames(samples) <- c("cell_type")
+1580670459618:samples <- data.frame(t(samples))
+1580670460237:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580670460254:grep("D", rownames(samples))
+1580670528125:samples$cell_type[diabetic]
+1580670532363:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580670532381:diabetic <- grep("D", rownames(samples))
+1580670541641:samples$cell_type[diabetic]
+1580670560926:samples$cell_type[,diabetic]
+1580670570185:samples$cell_type[diabetic,]
+1580670578092:samples$cell_type[diabetic]
+1580670587645:samples$cell_type[diabetic] = "diabetic"
+1580670605937:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580670605950:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580670606434:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670606847:rownames(samples) <- c("cell_type")
+1580670607232:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580670608210:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580670608220:diabetic <- grep("D", rownames(samples))
+1580670608619:samples$cell_type[diabetic] = "diabetic"
+1580670609021:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580670609034:#use edgeR to calculate counts per million (cpms)
+1580670609045:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580670609449:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580670615971:samples$cell_type[diabetic]
+1580670620278:samples
+1580670665331:normal <- grep("N", rownames(samples))
+1580670665741:samples$cell_type[diabetic] = "diabetic"
+1580670666115:samples$cell_type[normal] = "normal"
+1580670670746:samples
+1580670697554:colnames(diabetic.HDAC.SAHA)[2:7]
+1580670717209:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580670717227:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580670720463:samples
+1580670770826:samples <- data.frame(colnames(diabetic.HDAC.SAHA)[2:7])
+1580670774064:samples
+1580670789564:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670796319:samples <- data.frame(colnames(diabetic.HDAC.SAHA)[2:7])
+1580670797804:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670815806:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580670815822:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580670819307:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670822056:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580670822076:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580670824473:samples
+1580670837199:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670838088:rownames(samples) <- c("cell_type")
+1580670838920:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580670839771:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580670839807:diabetic <- grep("D", rownames(samples))
+1580670840668:normal <- grep("N", rownames(samples))
+1580670841206:samples$cell_type[diabetic] = "diabetic"
+1580670841925:samples$cell_type[normal] = "normal"
+1580670845600:samples
+1580670905201:rm(list=ls())
+1580670908712:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580670922975:if (!requireNamespace("BiocManager", quietly = TRUE))
+1580670922990:install.packages("BiocManager")
+1580670923006:if (!requireNamespace("GEOmetadb", quietly = TRUE))
+1580670923015:BiocManager::install("GEOmetadb")
+1580670923032:if (!requireNamespace("edgeR", quietly = TRUE))
+1580670923043:BiocManager::install("edgeR")
+1580670923055:library("GEOmetadb")
+1580670923064:library("edgeR")
+1580670923076:#METADATA
+1580670923085:gse <- getGEO("GSE77108",GSEMatrix=FALSE)
+1580670923186:colnames(gse)
+1580670923196:current_gpl <- names(GPLList(gse))[1]
+1580670923209:current_gpl_info <- Meta(getGEO(current_gpl))
+1580670924464:current_gpl_info$title
+1580670924483:current_gpl_info$last_update_date
+1580670924499:current_gpl_info$organism
+1580670924525:#GET THE EXPRESSION DATA
+1580670924539:sfiles = getGEOSuppFiles('GSE77108')
+1580670926424:fnames = rownames(sfiles)
+1580670926439:# there is only one supplemental file
+1580670926450:diabetic.HDAC = read.delim(fnames[1],header=TRUE,
+1580670926464:check.names = FALSE)
+1580670926890:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580670926903:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580670926913:#dim(diabetic.HDAC.SAHA)
+1580670926938:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580670926948:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580670926967:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670926979:rownames(samples) <- c("cell_type")
+1580670926990:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580670927004:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580670927013:diabetic <- grep("D", rownames(samples))
+1580670927027:normal <- grep("N", rownames(samples))
+1580670927037:samples$cell_type[diabetic] = "diabetic"
+1580670927046:samples$cell_type[normal] = "normal"
+1580670927059:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580670927068:#use edgeR to calculate counts per million (cpms)
+1580670927077:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580670927090:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580670927103:#use cpms to determine which of our ENSGs to throw out
+1580670927113:keep = rowSums(cpms >1) >=3
+1580670927126:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580670927146:#Distribution of our data - Boxplot
+1580670927157:data2plot <- log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7]))
+1580670927172:boxplot(data2plot, xlab = "Samples", ylab = "log2 CPM",
+1580670927185:las = 2, cex = 0.5, cex.lab = 0.5,
+1580670927194:cex.axis = 0.5, main = "normal and diabetic cells treated with SAHA")
+1580670927332:#Distribution of our data - Density plot
+1580670927346:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580670927644:#calculate the limits across all the samples
+1580670927654:xlim <- 0; ylim <- 0
+1580670927668:for (i in 1:length(counts_density)) {
+1580670927678:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580670927687:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580670927695:}
+1580670927715:cols <- rainbow(length(counts_density))
+1580670927727:ltys <- rep(1, length(counts_density))
+1580670927738:#plot the first density plot to initialize the plot
+1580670927746:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580670927755:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580670927779:#plot each line
+1580670927790:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580670927813:#create legend
+1580670927822:legend("topright", colnames(data2plot),
+1580670927833:col=cols, lty=ltys, cex=0.75,
+1580670927841:border ="blue",  text.col = "green4",
+1580670927851:merge = TRUE, bg = "gray90")
+1580670927875:#APPLYING TMM TO OUR DATASET
+1580670927887:filtered_data_matrix <- as.matrix(diabetic.HDAC.SAHA.filtered[,2:7])
+1580670927897:rownames(filtered_data_matrix) <- diabetic.HDAC.SAHA.filtered$Geneid
+1580670927909:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580670927925:#d = DGEList(counts=filtered_data_matrix)
+1580670927937:d = calcNormFactors(d)
+1580670928250:normalized_counts <- cpm(d)
+1580670928274:plotMDS(d, labels=rownames(samples),
+1580670928288:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580670928403:#estimate common and tagwise dispersion
+1580670928418:model_design <- model.matrix(~samples$patients + samples$cell_type+0)
+1580670928434:d <- estimateDisp(d, model_design)
+1580670951758:if (!requireNamespace("BiocManager", quietly = TRUE))
+1580670951774:install.packages("BiocManager")
+1580670951790:if (!requireNamespace("GEOmetadb", quietly = TRUE))
+1580670951799:BiocManager::install("GEOmetadb")
+1580670951816:if (!requireNamespace("edgeR", quietly = TRUE))
+1580670951827:BiocManager::install("edgeR")
+1580670951841:library("GEOmetadb")
+1580670951850:library("edgeR")
+1580670951863:#METADATA
+1580670951875:gse <- getGEO("GSE77108",GSEMatrix=FALSE)
+1580670951989:colnames(gse)
+1580670952002:current_gpl <- names(GPLList(gse))[1]
+1580670952010:current_gpl_info <- Meta(getGEO(current_gpl))
+1580670952780:current_gpl_info$title
+1580670952793:current_gpl_info$last_update_date
+1580670952807:current_gpl_info$organism
+1580670952842:#GET THE EXPRESSION DATA
+1580670952857:sfiles = getGEOSuppFiles('GSE77108')
+1580670953662:fnames = rownames(sfiles)
+1580670953678:# there is only one supplemental file
+1580670953696:diabetic.HDAC = read.delim(fnames[1],header=TRUE,
+1580670953710:check.names = FALSE)
+1580670954300:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580670954316:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580670954332:#dim(diabetic.HDAC.SAHA)
+1580670954357:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580670954369:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580670954392:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580670954403:rownames(samples) <- c("cell_type")
+1580670954419:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580670954449:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580670954465:diabetic <- grep("D", rownames(samples))
+1580670954480:normal <- grep("N", rownames(samples))
+1580670954495:samples$cell_type[diabetic] = "diabetic"
+1580670954510:samples$cell_type[normal] = "normal"
+1580670954534:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580670954552:#use edgeR to calculate counts per million (cpms)
+1580670954570:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580670954593:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580670954613:#use cpms to determine which of our ENSGs to throw out
+1580670954629:keep = rowSums(cpms >1) >=3
+1580670954649:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580670954678:#Distribution of our data - Boxplot
+1580670954696:data2plot <- log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7]))
+1580670954721:boxplot(data2plot, xlab = "Samples", ylab = "log2 CPM",
+1580670954710:las = 2, cex = 0.5, cex.lab = 0.5,
+1580670954723:cex.axis = 0.5, main = "normal and diabetic cells treated with SAHA")
+1580670954846:#Distribution of our data - Density plot
+1580670954860:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580670955049:#calculate the limits across all the samples
+1580670955061:xlim <- 0; ylim <- 0
+1580670955078:for (i in 1:length(counts_density)) {
+1580670955090:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580670955105:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580670955122:}
+1580670955151:cols <- rainbow(length(counts_density))
+1580670955171:ltys <- rep(1, length(counts_density))
+1580670955188:#plot the first density plot to initialize the plot
+1580670955201:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580670955218:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580670955246:#plot each line
+1580670955262:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580670955290:#create legend
+1580670955305:legend("topright", colnames(data2plot),
+1580670955318:col=cols, lty=ltys, cex=0.75,
+1580670955332:border ="blue",  text.col = "green4",
+1580670955346:merge = TRUE, bg = "gray90")
+1580670955458:#APPLYING TMM TO OUR DATASET
+1580670955471:filtered_data_matrix <- as.matrix(diabetic.HDAC.SAHA.filtered[,2:7])
+1580670955603:rownames(filtered_data_matrix) <- diabetic.HDAC.SAHA.filtered$Geneid
+1580670955618:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580670955712:#d = DGEList(counts=filtered_data_matrix)
+1580670955734:d = calcNormFactors(d)
+1580670955892:normalized_counts <- cpm(d)
+1580670955913:plotMDS(d, labels=rownames(samples),
+1580670955925:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580670956019:#estimate common and tagwise dispersion
+1580670956029:model_design <- model.matrix(samples$cell_type+0)
+1580670956041:d <- estimateDisp(d, model_design)
+1580671107520:#estimate common and tagwise dispersion
+1580671107533:#model_design <- model.matrix(samples$cell_type+0)
+1580671107546:model_design <- model.matrix(samples$cell_type)
+1580671120526:samples
+1580671132168:samples$cell_type
+1580671140138:model_design <- model.matrix(samples$cell_type)
+1580671232169:model_design <- model.matrix(cell_types)
+1580671234933:#estimate common and tagwise dispersion
+1580671234945:#model_design <- model.matrix(samples$cell_type+0)
+1580671234958:cell_types <- samples$cell_type
+1580671235351:model_design <- model.matrix(cell_types)
+1580671684556:#estimate common and tagwise dispersion
+1580671684589:#model_design <- model.matrix(samples$cell_type+0)
+1580671684611:#cell_types <- samples$cell_type
+1580671684627:#model_design <- model.matrix(cell_types)
+1580671684645:#d <- estimateDisp(d, model_design)
+1580671684661:d <- estimateDisp(d)
+1580671702833:plotBCV(d,col.tagwise = "black",col.common = "red")
+1580671831104:#Create a visual representation of the mean-variance relationship
+1580671831130:plotMeanVar(d, show.raw.vars = TRUE,
+1580671831149:show.tagwise.vars=FALSE, NBline=FALSE,
+1580671831165:show.ave.raw.vars = FALSE,show.binned.common.disp.vars = FALSE)
+1580671874397:plotMeanVar(d, show.raw.vars = TRUE,
+1580671874442:show.tagwise.vars=TRUE,
+1580671874464:NBline=FALSE, show.ave.raw.vars = FALSE,
+1580671874492:show.binned.common.disp.vars = FALSE)
+1580671973973:plotMeanVar(d, show.raw.vars = TRUE,
+1580671973985:show.tagwise.vars=TRUE,
+1580671973996:NBline=FALSE, show.ave.raw.vars = FALSE,
+1580671974005:show.binned.common.disp.vars = FALSE)
+1580671996569:# show.ave.raw.vars = TRUE
+1580671996583:plotMeanVar(d, show.raw.vars = TRUE, show.tagwise.vars=TRUE,
+1580671996602:show.ave.raw.vars = TRUE,
+1580671996618:NBline=FALSE, show.binned.common.disp.vars = FALSE)
+1580672081936:#NBline=TRUE, show.binned.common.disp.vars = TRUE
+1580672081949:plotMeanVar(d, show.raw.vars = TRUE,
+1580672081961:show.tagwise.vars=TRUE,
+1580672081973:show.ave.raw.vars = TRUE,
+1580672081982:NBline=TRUE,
+1580672081994:show.binned.common.disp.vars = TRUE)
+1580672161283:if (!requireNamespace("biomaRt", quietly = TRUE))
+1580672162167:BiocManager::install("biomaRt")
+1580672178918:library("biomaRt")
+1580674642168:head(diabetic.HDAC.SAHA.filtered )
+1580674674165:ensembl <- useMart("ensembl")
+1580674882456:ensembl <- useMart("ensembl")
+1580675018101:ensembl <- useMart("ensembl", dataset="hsapiens_gene_ensembl", mirror = "useast")
+1580675069055:#ensembl <- useMart("ensembl", dataset="hsapiens_gene_ensembl", mirror = "useast")
+1580675069072:#ensembl_gene_id, hgnc_symbol
+1580675069087:ensembl <- useEnsembl(biomart = "ensembl",
+1580675069100:dataset = "hsapiens_gene_ensembl",
+1580675069113:mirror = "useast")
+1580675082474:conversion_stash <- "SAHA_id_conversion.rds"
+1580675083064:if(file.exists(conversion_stash)){
+1580675083080:HDAC_id_conversion <- readRDS(conversion_stash)
+1580675083096:} else {
+1580675083117:HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580675083127:filters = c("ensembl_gene_id"),
+1580675083140:values = diabetic.HDAC.SAHA.filtered$Geneid,
+1580675083153:mart = ensembl)
+1580675083166:saveRDS(HDAC_id_conversion, conversion_stash)
+1580675083179:}
+1580675111101:head(HDAC_id_conversion )
+1580675319465:try(ensembl <- useMart("ensembl"))
+1580675501900:#try(ensembl <- useMart("ensembl"))
+1580675501920:#
+1580675501935:ensembl <- useEnsembl(biomart = "ensembl",
+1580675501948:dataset = "hsapiens_gene_ensembl")
+1580675661667:ensembl
+1580675684924:HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580675684947:filters = c("ensembl_gene_id"),
+1580675684966:values = diabetic.HDAC.SAHA.filtered$Geneid,
+1580675684985:mart = ensembl)
+1580675711511:head(HDAC_id_conversion )
+1580675728939:diabetic.HDAC.SAHA.filtered$Geneid
+1580675782450:getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580675782467:filters = c("ensembl_gene_id"),
+1580675782481:values = c("ENSG1"),
+1580675782493:mart = ensembl)
+1580675806344:if(file.exists(conversion_stash)){
+1580675806355:HDAC_id_conversion <- readRDS(conversion_stash)
+1580675806368:} else {
+1580675806384:HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580675806393:filters = c("ensembl_gene_id"),
+1580675806404:values = diabetic.HDAC.SAHA.filtered$Geneid,
+1580675806412:mart = ensembl)
+1580675806421:saveRDS(HDAC_id_conversion, conversion_stash)
+1580675806430:}
+1580675815136:dim(HDAC_id_conversion )
+1580675836414:dim(diabetic.HDAC.SAHA.filtered)
+1580675988354:nrow(diabetic.HDAC.SAHA.filtered) - nrow(HDAC_id_conversion)
+1580680340125:ensembl <- useEnsembl(biomart = "ensembl",
+1580680340141:dataset = "hsapiens_gene_ensembl",
+1580680340155:mirror = "useast")
+1580682044294:plotMDS(d, labels=rownames(samples),
+1580682044311:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580682058877:#Graphing the BCV
+1580682058895:plotBCV(d,col.tagwise = "black",col.common = "red")
+1580682075347:#Create a visual representation of the mean-variance relationship
+1580682075363:plotMeanVar(d, show.raw.vars = TRUE,
+1580682075376:show.tagwise.vars=TRUE,
+1580682075387:show.ave.raw.vars = TRUE,
+1580682075402:NBline=TRUE,
+1580682075413:show.binned.common.disp.vars = TRUE)
+1580683409490:plot(cars)
+1580683424920:plot(cars)
+1580683557250:# check to ensure all needed packages are installed
+1580683557289:if (!requireNamespace("BiocManager", quietly = TRUE))
+1580683557324:install.packages("BiocManager")
+1580683557386:if (!requireNamespace("GEOmetadb", quietly = TRUE))
+1580683557425:BiocManager::install("GEOmetadb")
+1580683559234:if (!requireNamespace("edgeR", quietly = TRUE))
+1580683559283:BiocManager::install("edgeR")
+1580683559488:if (!requireNamespace("biomaRt", quietly = TRUE))
+1580683559514:BiocManager::install("biomaRt")
+1580683574471:# load needed libraries
+1580683574494:library("GEOmetadb")
+1580683574745:library("edgeR")
+1580683574831:library("biomaRt")
+1580683586783:#GET THE EXPRESSION DATA
+1580683586810:sfiles = getGEOSuppFiles('GSE77108')
+1580683588330:fnames = rownames(sfiles)
+1580683588366:# there is only one supplemental file
+1580683588392:diabetic.HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+1580683589021:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580683589051:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580683655985:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580683656012:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580683656361:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580683656490:rownames(samples) <- c("cell_type")
+1580683656537:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580683656656:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580683656696:diabetic <- grep("D", rownames(samples))
+1580683656735:normal <- grep("N", rownames(samples))
+1580683656775:samples$cell_type[diabetic] = "diabetic"
+1580683656818:samples$cell_type[normal] = "normal"
+1580683714883:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580683714920:#use edgeR to calculate counts per million (cpms)
+1580683714983:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580683715051:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580683715110:#use cpms to determine which of our ENSGs to throw out
+1580683715146:keep = rowSums(cpms >1) >=3
+1580683715189:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580683842960:#APPLYING TMM TO OUR DATASET
+1580683842983:filtered_data_matrix <- as.matrix(diabetic.HDAC.SAHA.filtered[,2:7])
+1580683843018:rownames(filtered_data_matrix) <- diabetic.HDAC.SAHA.filtered$Geneid
+1580683843048:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580683843097:d = calcNormFactors(d)
+1580683843492:normalized_counts <- cpm(d)
+1580683843620:#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+1580683843640:d <- estimateDisp(d)
+1580683898564:#MAP ENSG TO HGNC SYMBOLS
+1580683898598:#get mart object from useast mirror (this mirror was working at the time of running)
+1580683898659:ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+1580683900825:conversion_stash <- "SAHA_id_conversion.rds"
+1580683900858:if(file.exists(conversion_stash)){
+1580683900885:HDAC_id_conversion <- readRDS(conversion_stash)
+1580683900910:} else {
+1580683900936:HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580683900964:filters = c("ensembl_gene_id"),
+1580683900993:values = diabetic.HDAC.SAHA.filtered$Geneid,
+1580683901020:mart = ensembl)
+1580683901049:saveRDS(HDAC_id_conversion, conversion_stash)
+1580683901088:}
+1580686249749:if (!requireNamespace("BiocManager", quietly = TRUE))
+1580686249777:install.packages("BiocManager")
+1580686249811:if (!requireNamespace("GEOmetadb", quietly = TRUE))
+1580686249826:BiocManager::install("GEOmetadb")
+1580686249869:if (!requireNamespace("edgeR", quietly = TRUE))
+1580686249900:BiocManager::install("edgeR")
+1580686249949:if (!requireNamespace("biomaRt", quietly = TRUE))
+1580686249978:BiocManager::install("biomaRt")
+1580686250025:library("GEOmetadb")
+1580686250263:library("edgeR")
+1580686250277:library("biomaRt")
+1580686250297:#METADATA
+1580686250309:gse <- getGEO("GSE77108",GSEMatrix=FALSE)
+1580686251173:colnames(gse)
+1580686251197:current_gpl <- names(GPLList(gse))[1]
+1580686251212:current_gpl_info <- Meta(getGEO(current_gpl))
+1580686256071:current_gpl_info$title
+1580686256094:current_gpl_info$last_update_date
+1580686256110:current_gpl_info$organism
+1580686256139:#GET THE EXPRESSION DATA
+1580686256155:sfiles = getGEOSuppFiles('GSE77108')
+1580686256981:fnames = rownames(sfiles)
+1580686256994:# there is only one supplemental file
+1580686257007:diabetic.HDAC = read.delim(fnames[1],header=TRUE,
+1580686257020:check.names = FALSE)
+1580686257367:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580686257380:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580686257392:#dim(diabetic.HDAC.SAHA)
+1580686257418:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580686257430:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580686257450:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580686257462:rownames(samples) <- c("cell_type")
+1580686257475:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580686257490:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580686257502:diabetic <- grep("D", rownames(samples))
+1580686257528:normal <- grep("N", rownames(samples))
+1580686257544:samples$cell_type[diabetic] = "diabetic"
+1580686257557:samples$cell_type[normal] = "normal"
+1580686257579:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580686257594:#use edgeR to calculate counts per million (cpms)
+1580686257605:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580686257624:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580686257636:#use cpms to determine which of our ENSGs to throw out
+1580686257652:keep = rowSums(cpms >1) >=3
+1580686257670:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580686257694:#Distribution of our data - Boxplot
+1580686257707:data2plot <- log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7]))
+1580686257731:boxplot(data2plot, xlab = "Samples", ylab = "log2 CPM",
+1580686257744:las = 2, cex = 0.5, cex.lab = 0.5,
+1580686257755:cex.axis = 0.5, main = "normal and diabetic cells treated with SAHA")
+1580686257905:#Distribution of our data - Density plot
+1580686257919:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580686258095:#calculate the limits across all the samples
+1580686258105:xlim <- 0; ylim <- 0
+1580686258117:for (i in 1:length(counts_density)) {
+1580686258126:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580686258137:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580686258148:}
+1580686258172:cols <- rainbow(length(counts_density))
+1580686258186:ltys <- rep(1, length(counts_density))
+1580686258200:#plot the first density plot to initialize the plot
+1580686258216:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580686258233:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580686258270:#plot each line
+1580686258286:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580686258313:#create legend
+1580686258327:legend("topright", colnames(data2plot),
+1580686258342:col=cols, lty=ltys, cex=0.75,
+1580686258358:border ="blue",  text.col = "green4",
+1580686258372:merge = TRUE, bg = "gray90")
+1580686258519:#APPLYING TMM TO OUR DATASET
+1580686258537:filtered_data_matrix <- as.matrix(diabetic.HDAC.SAHA.filtered[,2:7])
+1580686258551:rownames(filtered_data_matrix) <- diabetic.HDAC.SAHA.filtered$Geneid
+1580686258563:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580686258583:#d = DGEList(counts=filtered_data_matrix)
+1580686258600:d = calcNormFactors(d)
+1580686258944:normalized_counts <- cpm(d)
+1580686258966:plotMDS(d, labels=rownames(samples),
+1580686258981:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580686259075:#estimate common and tagwise dispersion
+1580686259089:#model_design <- model.matrix(samples$cell_type+0)
+1580686259105:#cell_types <- samples$cell_type
+1580686259117:#model_design <- model.matrix(cell_types)
+1580686259130:#d <- estimateDisp(d, model_design)
+1580686259143:d <- estimateDisp(d)
+1580686262505:#Graphing the BCV
+1580686262516:plotBCV(d,col.tagwise = "black",col.common = "red")
+1580686262665:#Create a visual representation of the mean-variance relationship
+1580686262675:plotMeanVar(d, show.raw.vars = TRUE,
+1580686262686:show.tagwise.vars=TRUE,
+1580686262693:show.ave.raw.vars = TRUE,
+1580686262703:NBline=TRUE,
+1580686262712:show.binned.common.disp.vars = TRUE)
+1580686265755:#try(ensembl <- useMart("ensembl"))
+1580686265765:#
+1580686265777:ensembl <- useEnsembl(biomart = "ensembl",
+1580686265789:dataset = "hsapiens_gene_ensembl",
+1580686265798:mirror = "useast")
+1580686268869:conversion_stash <- "SAHA_id_conversion.rds"
+1580686268884:if(file.exists(conversion_stash)){
+1580686268896:HDAC_id_conversion <- readRDS(conversion_stash)
+1580686268911:} else {
+1580686268933:HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580686268946:filters = c("ensembl_gene_id"),
+1580686268961:values = diabetic.HDAC.SAHA.filtered$Geneid,
+1580686268972:mart = ensembl)
+1580686268989:saveRDS(HDAC_id_conversion, conversion_stash)
+1580686269002:}
+1580686269058:#number of ENSG IDs not mapped to HGNC symbols
+1580686269076:nrow(diabetic.HDAC.SAHA.filtered) - nrow(HDAC_id_conversion)
+1580686285113:#Distribution of our data - Density plot
+1580686285128:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580686285201:#calculate the limits across all the samples
+1580686285215:xlim <- 0; ylim <- 0
+1580686285226:for (i in 1:length(counts_density)) {
+1580686285243:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580686285256:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580686285271:}
+1580686285294:cols <- rainbow(length(counts_density))
+1580686285319:ltys <- rep(1, length(counts_density))
+1580686285335:#plot the first density plot to initialize the plot
+1580686285346:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580686285359:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580686285394:#plot each line
+1580686285406:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580686285432:#create legend
+1580686285445:legend("topright", colnames(data2plot),
+1580686285459:col=cols, lty=ltys, cex=0.75,
+1580686285473:border ="blue",  text.col = "green4",
+1580686285486:merge = TRUE, bg = "gray90")
+1580686459792:#Distribution of our data - Density plot
+1580686459839:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580686460051:#calculate the limits across all the samples
+1580686460078:xlim <- 0; ylim <- 0
+1580686460186:for (i in 1:length(counts_density)) {
+1580686460224:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580686460242:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580686460261:}
+1580686460304:cols <- rainbow(length(counts_density))
+1580686460330:ltys <- rep(1, length(counts_density))
+1580686460356:#plot the first density plot to initialize the plot
+1580686460386:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580686460421:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580686460575:#plot each line
+1580686460601:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580686460847:#create legend
+1580686460914:legend("topright", colnames(data2plot),
+1580686460937:col=cols, lty=ltys, cex=0.75,
+1580686460960:border ="blue",  text.col = "green4",
+1580686460984:merge = TRUE, bg = "gray90")
+1580686482715:#Distribution of our data - Density plot
+1580686482738:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580686482875:#calculate the limits across all the samples
+1580686482905:xlim <- 0; ylim <- 0
+1580686482936:for (i in 1:length(counts_density)) {
+1580686482962:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580686482987:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580686483012:}
+1580686483061:cols <- rainbow(length(counts_density))
+1580686483094:ltys <- rep(1, length(counts_density))
+1580686483128:#plot the first density plot to initialize the plot
+1580686483157:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580686483183:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580686483235:#plot each line
+1580686483286:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580686483341:#create legend
+1580686483363:legend("topright", colnames(data2plot),
+1580686483383:col=cols, lty=ltys, cex=0.75,
+1580686483403:border ="blue",  text.col = "green4",
+1580686483422:merge = TRUE, bg = "gray90")
+1580690078260:counts_density
+1580690112597:counts_density
+1580690149253:head(diabetic.HDAC.SAHA.filtered[,2:7])
+1580690179248:head(cpm(diabetic.HDAC.SAHA.filtered[,2:7]))
+1580690208771:head(normalized_counts)
+1580690316200:head(counts_density[[1]])
+1580690384792:d
+1580690408206:length(d)
+1580690411624:length(d$counts)
+1580690422493:length(d$counts)/6
+1580690434350:normalized_counts
+1580690446611:typeof(normalized_counts)
+1580690455206:normalized_counts <- cpm(d)
+1580690471503:head(normalized_counts)
+1580690479798:normalized_counts <- cpm(d$counts)
+1580690483054:head(normalized_counts)
+1580690515518:normalized_counts <- cpm(d$counts)
+1580690517736:head(normalized_counts)
+1580690525758:normalized_counts <- cpm(d)
+1580690528047:head(normalized_counts)
+1580690666827:estimateDisp(d)
+1580690774533:counts_density <- apply(log2(d), 2, density)
+1580690833123:colnames(d)
+1580690836090:d
+1580690852646:d$counts
+1580690881523:head(d$counts)
+1580690894007:head(diabetic.HDAC.SAHA.filtered[,2:7])
+1580690926555:cpm(d)
+1580691022699:estimateDisp(d)
+1580691119750:counts_density <- apply(log2(normalized_counts), 2, density)
+1580691119860:#calculate the limits across all the samples
+1580691119893:xlim <- 0; ylim <- 0
+1580691119916:for (i in 1:length(counts_density)) {
+1580691119930:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580691119946:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580691119962:}
+1580691119997:cols <- rainbow(length(counts_density))
+1580691120017:ltys <- rep(1, length(counts_density))
+1580691120040:#plot the first density plot to initialize the plot
+1580691120059:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580691120074:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580691120118:#plot each line
+1580691120136:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580691120170:#create legend
+1580691120191:legend("topright", colnames(data2plot),
+1580691120206:col=cols, lty=ltys, cex=0.75,
+1580691120222:border ="blue",  text.col = "green4",
+1580691120238:merge = TRUE, bg = "gray90")
+1580691131374:#PLOT NON-NORMALIZED DATA
+1580691131408:#Distribution of our data - Density plot
+1580691131437:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580691131655:#calculate the limits across all the samples
+1580691131680:xlim <- 0; ylim <- 0
+1580691131711:for (i in 1:length(counts_density)) {
+1580691131734:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580691131758:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580691131782:}
+1580691131828:cols <- rainbow(length(counts_density))
+1580691131857:ltys <- rep(1, length(counts_density))
+1580691131888:#plot the first density plot to initialize the plot
+1580691131916:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580691131941:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580691131993:#plot each line
+1580691132019:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580691132079:#create legend
+1580691132112:legend("topright", colnames(data2plot),
+1580691132154:col=cols, lty=ltys, cex=0.75,
+1580691132179:border ="blue",  text.col = "green4",
+1580691132204:merge = TRUE, bg = "gray90")
+1580691132253:#PLOT NORMALIZED DATA
+1580691132302:counts_density <- apply(log2(normalized_counts), 2, density)
+1580691132420:#calculate the limits across all the samples
+1580691132450:xlim <- 0; ylim <- 0
+1580691132484:for (i in 1:length(counts_density)) {
+1580691132506:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580691132529:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580691132551:}
+1580691132601:cols <- rainbow(length(counts_density))
+1580691132632:ltys <- rep(1, length(counts_density))
+1580691132663:#plot the first density plot to initialize the plot
+1580691132691:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580691132715:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580691132891:#plot each line
+1580691132951:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580691133024:#create legend
+1580691133058:legend("topright", colnames(data2plot),
+1580691133088:col=cols, lty=ltys, cex=0.75,
+1580691133116:border ="blue",  text.col = "green4",
+1580691133145:merge = TRUE, bg = "gray90")
+1580691197443:# load needed libraries
+1580691197467:library("GEOmetadb")
+1580691197489:library("edgeR")
+1580691197508:library("biomaRt")
+1580691199176:#GET THE EXPRESSION DATA
+1580691199203:sfiles = getGEOSuppFiles('GSE77108')
+1580691201567:fnames = rownames(sfiles)
+1580691201603:# there is only one supplemental file
+1580691201631:diabetic.HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+1580691202100:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580691202127:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("SAHA|Geneid", colnames(diabetic.HDAC))]
+1580691205567:#GENERATE "samples", METADATA ABOUT SAMPLES
+1580691205594:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:7],
+1580691205623:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580691205669:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:7]
+1580691205707:rownames(samples) <- c("cell_type")
+1580691205746:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580691205800:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580691205834:diabetic <- grep("D", rownames(samples))
+1580691205868:normal <- grep("N", rownames(samples))
+1580691205899:samples$cell_type[diabetic] = "diabetic"
+1580691205935:samples$cell_type[normal] = "normal"
+1580691210071:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580691210111:#use edgeR to calculate counts per million (cpms)
+1580691210147:cpms = cpm(diabetic.HDAC.SAHA[2:7])
+1580691210192:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580691210287:#use cpms to determine which of our ENSGs to throw out
+1580691210339:keep = rowSums(cpms >1) >=3
+1580691210385:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580691212019:#APPLYING TMM TO OUR DATASET
+1580691212086:filtered_data_matrix <- as.matrix(diabetic.HDAC.SAHA.filtered[,2:7])
+1580691212193:rownames(filtered_data_matrix) <- diabetic.HDAC.SAHA.filtered$Geneid
+1580691212281:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580691212451:d = calcNormFactors(d)
+1580691213230:normalized_counts <- cpm(d)
+1580691213266:#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+1580691213300:d <- estimateDisp(d)
+1580691222212:#MAP ENSG TO HGNC SYMBOLS
+1580691222234:#get mart object from useast mirror (this mirror was working at the time of running)
+1580691222257:ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+1580691224301:conversion_stash <- "SAHA_id_conversion.rds"
+1580691224335:if(file.exists(conversion_stash)){
+1580691224363:HDAC_id_conversion <- readRDS(conversion_stash)
+1580691224392:} else {
+1580691224419:HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580691224447:filters = c("ensembl_gene_id"),
+1580691224475:values = diabetic.HDAC.SAHA.filtered$Geneid,
+1580691224582:mart = ensembl)
+1580691224663:saveRDS(HDAC_id_conversion, conversion_stash)
+1580691224689:}
+1580691229055:#PLOT NON-NORMALIZED DATA
+1580691229082:#Distribution of our data - Density plot
+1580691229109:counts_density <- apply(log2(cpm(diabetic.HDAC.SAHA.filtered[,2:7])), 2, density)
+1580691229364:#calculate the limits across all the samples
+1580691229420:xlim <- 0; ylim <- 0
+1580691229484:for (i in 1:length(counts_density)) {
+1580691229582:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580691229636:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580691229675:}
+1580691229724:cols <- rainbow(length(counts_density))
+1580691229758:ltys <- rep(1, length(counts_density))
+1580691229786:#plot the first density plot to initialize the plot
+1580691229811:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580691229838:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580691229892:#plot each line
+1580691229931:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580691229975:#create legend
+1580691230003:legend("topright", colnames(data2plot),
+1580691230027:col=cols, lty=ltys, cex=0.75,
+1580691230059:border ="blue",  text.col = "green4",
+1580691230089:merge = TRUE, bg = "gray90")
+1580691230146:#PLOT NORMALIZED DATA
+1580691230194:counts_density <- apply(log2(normalized_counts), 2, density)
+1580691230322:#calculate the limits across all the samples
+1580691230355:xlim <- 0; ylim <- 0
+1580691230390:for (i in 1:length(counts_density)) {
+1580691230415:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580691230440:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580691230463:}
+1580691230506:cols <- rainbow(length(counts_density))
+1580691230536:ltys <- rep(1, length(counts_density))
+1580691230567:#plot the first density plot to initialize the plot
+1580691230602:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580691230628:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580691230762:#plot each line
+1580691230802:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580691230864:#create legend
+1580691230898:legend("topright", colnames(data2plot),
+1580691230923:col=cols, lty=ltys, cex=0.75,
+1580691230949:border ="blue",  text.col = "green4",
+1580691230980:merge = TRUE, bg = "gray90")
+1580691859456:colnames(diabetic.HDAC.SAHA)
+1580691892844:#GET THE EXPRESSION DATA
+1580691892885:sfiles = getGEOSuppFiles('GSE77108')
+1580691897248:fnames = rownames(sfiles)
+1580691897279:# there is only one supplemental file
+1580691897309:diabetic.HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+1580691897803:#SUBSET ONLY COLUMNS WHICH have SAHA treatment
+1580691897826:diabetic.HDAC.SAHA <- diabetic.HDAC[grep("DMSO|SAHA|Geneid", colnames(diabetic.HDAC))]
+1580691907507:colnames(diabetic.HDAC.SAHA)
+1580691932848:ncol(diabetic.HDAC.SAHA)
+1580691972474:#GENERATE "samples", METADATA ABOUT SAMPLES
+1580691972512:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:ncol(diabetic.HDAC.SAHA)],
+1580691972538:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580691972599:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:ncol(diabetic.HDAC.SAHA)]
+1580691972649:rownames(samples) <- c("cell_type")
+1580691972695:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580691972745:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580691972772:diabetic <- grep("D", rownames(samples))
+1580691972810:normal <- grep("N", rownames(samples))
+1580691972841:samples$cell_type[diabetic] = "diabetic"
+1580691972919:samples$cell_type[normal] = "normal"
+1580691983257:diabetic
+1580692006227:#GENERATE "samples", METADATA ABOUT SAMPLES
+1580692006254:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:ncol(diabetic.HDAC.SAHA)],
+1580692006276:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580692006340:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:ncol(diabetic.HDAC.SAHA)]
+1580692006389:rownames(samples) <- c("cell_type")
+1580692006440:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580692006497:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580692006530:diabetic <- grep("D-", rownames(samples))
+1580692006565:normal <- grep("N-", rownames(samples))
+1580692006599:samples$cell_type[diabetic] = "diabetic"
+1580692006735:samples$cell_type[normal] = "normal"
+1580692010819:diabetic
+1580692015005:normal
+1580692017840:samples
+1580692278359:#GENERATE "samples", METADATA ABOUT SAMPLES
+1580692278383:samples <- data.frame(lapply(colnames(diabetic.HDAC.SAHA)[2:ncol(diabetic.HDAC.SAHA)],
+1580692278403:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580692278461:colnames(samples) <- colnames(diabetic.HDAC.SAHA)[2:ncol(diabetic.HDAC.SAHA)]
+1580692278505:rownames(samples) <- c("cell_type")
+1580692278570:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580692278639:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580692278670:diabetic <- grep("D-", rownames(samples))
+1580692278851:normal <- grep("N-", rownames(samples))
+1580692278924:samples$cell_type[diabetic] = "diabetic"
+1580692278952:samples$cell_type[normal] = "normal"
+1580692288908:samples
+1580692311874:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580692311902:#use edgeR to calculate counts per million (cpms)
+1580692311897:cpms = cpm(diabetic.HDAC.SAHA[2:ncol(diabetic.HDAC.SAHA)])
+1580692311942:rownames(cpms) <- diabetic.HDAC.SAHA[,1]
+1580692311977:#use cpms to determine which of our ENSGs to throw out
+1580692312004:keep = rowSums(cpms >1) >=3
+1580692312049:diabetic.HDAC.SAHA.filtered = diabetic.HDAC.SAHA[keep,]
+1580692394705:head(diabetic.HDAC.SAHA.filtered)
+1580692416054:head(normalized_counts )
+1580692460005:normalized_counts <- d$counts
+1580692464310:head(normalized_counts )
+1580692470823:head(normalized_counts, 3)
+1580692525484:head(diabetic.HDAC.SAHA.filtered , 3)
+1580692542029:#APPLYING TMM TO OUR DATASET
+1580692542058:filtered_data_matrix <- as.matrix(diabetic.HDAC.SAHA.filtered[,2:ncol(diabetic.HDAC.SAHA)])
+1580692542101:rownames(filtered_data_matrix) <- diabetic.HDAC.SAHA.filtered$Geneid
+1580692542139:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580692542204:d = calcNormFactors(d)
+1580692542875:normalized_counts <- cpm(d)
+1580692542932:normalized_counts <- d$counts
+1580692543026:#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+1580692543110:d <- estimateDisp(d)
+1580692562306:head(normalized_counts, 3)
+1580692610105:head(diabetic.HDAC.SAHA.filtered, 3)
+1580692689185:head(d$counts, 3)
+1580692745069:nrow(normalized_counts)
+1580692759683:nrow(diabetic.HDAC.SAHA.filtered)
+1580692796419:nrow(d$counts)
+1580693448500:colnames(diabetic.HDAC.SAHA )
+1580693556678:#SUBSET ONLY COLUMNS WHICH have SAHA or treatment
+1580693556698:SAHA.DMSO <- diabetic.HDAC[grep("DMSO|SAHA|Geneid", colnames(HDAC))]
+1580693563990:#GET THE EXPRESSION DATA
+1580693564027:sfiles = getGEOSuppFiles('GSE77108')
+1580693565460:fnames = rownames(sfiles)
+1580693565498:# there is only one supplemental file
+1580693565529:HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+1580693566000:#SUBSET ONLY COLUMNS WHICH have SAHA or treatment
+1580693566029:SAHA.DMSO <- diabetic.HDAC[grep("DMSO|SAHA|Geneid", colnames(HDAC))]
+1580693610566:ls()
+1580693618126:rm(list=ls())
+1580693625765:# load needed libraries
+1580693625791:library("GEOmetadb")
+1580693625817:library("edgeR")
+1580693625843:library("biomaRt")
+1580693632190:ls()
+1580693646568:#GET THE EXPRESSION DATA
+1580693646584:sfiles = getGEOSuppFiles('GSE77108')
+1580693648810:fnames = rownames(sfiles)
+1580693648843:# there is only one supplemental file
+1580693648877:HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+1580693649625:#SUBSET ONLY COLUMNS WHICH have diabetic cells and SAHA or DMSO treatment
+1580693649657:SAHA.DMSO <- HDAC[grep("DMSO|SAHA|Geneid", colnames(HDAC))]
+1580693655700:ls()
+1580693713547:diabetic.SAHA.DMSO <- SAHA.DMSO[grep("D-", colnames(SAHA.DMSO))]
+1580693719231:diabetic.SAHA.DMSO
+1580693799710:#GET THE EXPRESSION DATA
+1580693799742:sfiles = getGEOSuppFiles('GSE77108')
+1580693801160:fnames = rownames(sfiles)
+1580693801188:# there is only one supplemental file
+1580693801215:HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+1580693801641:#SUBSET ONLY COLUMNS WHICH have diabetic cells and SAHA or DMSO treatment
+1580693801690:SAHA.DMSO <- HDAC[grep("DMSO|SAHA|Geneid", colnames(HDAC))]
+1580693801738:diabetic.SAHA.DMSO <- SAHA.DMSO[grep("D-", colnames(SAHA.DMSO))]
+1580693868797:#GENERATE "samples", METADATA ABOUT SAMPLES
+1580693868824:samples <- data.frame(lapply(colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)],
+1580693868859:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580693868900:colnames(samples) <- colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)]
+1580693868937:rownames(samples) <- c("treatment")
+1580693868985:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580693869061:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580693869107:DMSO <- grep("DMOS", rownames(samples))
+1580693869168:SAHA <- grep("SAHA", rownames(samples))
+1580693869207:samples$treatment[DMSO] = "DMSO"
+1580693869253:samples$treatment[SAHA] = "SAHA"
+1580693874126:sampels
+1580693875858:samples
+1580693914067:#GENERATE "samples", METADATA ABOUT SAMPLES
+1580693914105:samples <- data.frame(lapply(colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)],
+1580693914141:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580693914201:colnames(samples) <- colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)]
+1580693914279:rownames(samples) <- c("treatment")
+1580693914366:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580693914454:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580693914497:DMSO <- grep("DMSO", rownames(samples))
+1580693914528:SAHA <- grep("SAHA", rownames(samples))
+1580693914560:samples$treatment[DMSO] = "DMSO"
+1580693914609:samples$treatment[SAHA] = "SAHA"
+1580693918096:samples
+1580693947978:colnames(diabetic.SAHA.DMSO)
+1580693961795:#GET THE EXPRESSION DATA
+1580693961816:sfiles = getGEOSuppFiles('GSE77108')
+1580693971889:fnames = rownames(sfiles)
+1580693971922:# there is only one supplemental file
+1580693971948:HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+1580693983662:#GET THE EXPRESSION DATA
+1580693983690:sfiles = getGEOSuppFiles('GSE77108')
+1580693985013:fnames = rownames(sfiles)
+1580693985064:# there is only one supplemental file
+1580693985106:HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+1580693985700:#SUBSET ONLY COLUMNS WHICH have diabetic cells and SAHA or DMSO treatment
+1580693985725:SAHA.DMSO <- HDAC[grep("DMSO|SAHA|Geneid", colnames(HDAC))]
+1580693985752:diabetic.SAHA.DMSO <- SAHA.DMSO[grep("D-|Geneid", colnames(SAHA.DMSO))]
+1580693996100:#GENERATE "samples", METADATA ABOUT SAMPLES
+1580693996132:samples <- data.frame(lapply(colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)],
+1580693996161:FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+1580693996208:colnames(samples) <- colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)]
+1580693996245:rownames(samples) <- c("treatment")
+1580693996278:samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+1580693996325:#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+1580693996355:DMSO <- grep("DMSO", rownames(samples))
+1580693996406:SAHA <- grep("SAHA", rownames(samples))
+1580693996441:samples$treatment[DMSO] = "DMSO"
+1580693996489:samples$treatment[SAHA] = "SAHA"
+1580693999720:samples
+1580694042377:nrow(diabetic.SAHA.DMSO)
+1580694046266:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580694046292:#use edgeR to calculate counts per million (cpms)
+1580694046318:cpms = cpm(diabetic.SAHA.DMSO[2:ncol(diabetic.SAHA.DMSO)])
+1580694046348:rownames(cpms) <- diabetic.SAHA.DMSO[,1]
+1580694046379:#use cpms to determine which of our ENSGs to throw out
+1580694046401:keep = rowSums(cpms >1) >=3
+1580694046432:diabetic.SAHA.DMSO.filtered = diabetic.SAHA.DMSO[keep,]
+1580694052505:nrow(diabetic.SAHA.DMSO.filtered)
+1580694087907:#APPLYING TMM TO OUR DATASET
+1580694087942:filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
+1580694088009:rownames(filtered_data_matrix) <- diabetic.SAHA.DMSO.filtered$Geneid
+1580694088056:d = DGEList(counts=filtered_data_matrix, group=samples$cell_type)
+1580694088097:d = calcNormFactors(d)
+1580694088294:normalized_counts <- cpm(d)
+1580694088331:#normalized_counts <- d$counts
+1580694088361:#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+1580694088392:d <- estimateDisp(d)
+1580694101302:nrow(diabetic.SAHA.DMSO.filtered)
+1580694106853:nrow(normalized_counts)
+1580694118881:nrow(d)
+1580694138357:samples$cell_type
+1580694194507:samples$treatment
+1580694202423:#APPLYING TMM TO OUR DATASET
+1580694202461:filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
+1580694202504:rownames(filtered_data_matrix) <- diabetic.SAHA.DMSO.filtered$Geneid
+1580694202550:d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
+1580694202617:d = calcNormFactors(d)
+1580694202813:normalized_counts <- cpm(d)
+1580694202892:#normalized_counts <- d$counts
+1580694202926:#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+1580694202943:d <- estimateDisp(d)
+1580694209884:nrow(d)
+1580694225055:d$counts
+1580694242176:diabetic.SAHA.DMSO.filtered$counts
+1580694247374:diabetic.SAHA.DMSO.filtered
+1580694266263:identical(d$counts, diabetic.SAHA.DMSO.filtered)
+1580694404699:difference(d$counts, diabetic.SAHA.DMSO.filtered)
+1580694409303:diff(d$counts, diabetic.SAHA.DMSO.filtered)
+1580694716298:identical(d$counts, diabetic.SAHA.DMSO.filtered)
+1580694732377:identical(d$counts[1,], diabetic.SAHA.DMSO.filtered[1,])
+1580694736986:d$counts[1,]
+1580694748126:diabetic.SAHA.DMSO.filtered[1,]
+1580694766227:d$counts[1:2,]
+1580694771022:diabetic.SAHA.DMSO.filtered[1:2,]
+1580694819392:diabetic.SAHA.DMSO.filtered[1,2:ncol(diabetic.SAHA.DMSO)]
+1580694968277:#FILTER OUT GENES THAT HAVE LOW COUNTS
+1580694968309:#use edgeR to calculate counts per million (cpms)
+1580694968338:cpms = cpm(diabetic.SAHA.DMSO[2:ncol(diabetic.SAHA.DMSO)])
+1580694968381:rownames(cpms) <- diabetic.SAHA.DMSO[,1]
+1580694968428:#use cpms to determine which of our ENSGs to throw out
+1580694968470:keep = rowSums(cpms >1) >=3
+1580694968544:diabetic.SAHA.DMSO.filtered = diabetic.SAHA.DMSO[keep,]
+1580694968599:rownames(diabetic.SAHA.DMSO.filtered) <- diabetic.SAHA.DMSO.filtered$Geneid
+1580694981465:diabetic.SAHA.DMSO.filtered[1,2:ncol(diabetic.SAHA.DMSO)]
+1580695004713:d$counts[1:2,]
+1580695024487:identical(d$counts[1,], diabetic.SAHA.DMSO.filtered[1,2:ncol(diabetic.SAHA.DMSO)])
+1580695040648:d$counts[1,]
+1580695052195:diabetic.SAHA.DMSO.filtered[1,2:ncol(diabetic.SAHA.DMSO)]
+1580695060408:d$counts[1:2,]
+1580695076957:diabetic.SAHA.DMSO.filtered[1:2,2:ncol(diabetic.SAHA.DMSO)]
+1580695092711:identical(d$counts[1:2,]diabetic.SAHA.DMSO.filtered[1:2,2:ncol(diabetic.SAHA.DMSO)])
+1580695102453:identical(d$counts[1:2,], diabetic.SAHA.DMSO.filtered[1:2,2:ncol(diabetic.SAHA.DMSO)])
+1580695132327:typeof(d$counts[1:2,])
+1580695143654:typeof(diabetic.SAHA.DMSO.filtered[1:2,2:ncol(diabetic.SAHA.DMSO)])
+1580695177818:typeof(as.data.framed$counts[1:2,]))
+1580695190150:typeof(as.data.frame(d$counts[1:2,]))
+1580695201055:as.data.frame(d$counts[1:2,])
+1580695347497:#MAP ENSG TO HGNC SYMBOLS
+1580695347564:#get mart object from useast mirror (this mirror was working at the time of running)
+1580695347611:ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+1580695349982:conversion_stash <- "SAHA_id_conversion.rds"
+1580695350057:if(file.exists(conversion_stash)){
+1580695350116:HDAC_id_conversion <- readRDS(conversion_stash)
+1580695350176:} else {
+1580695350217:HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580695350278:filters = c("ensembl_gene_id"),
+1580695350334:values = diabetic.SAHA.DMSO.filtered$Geneid,
+1580695350376:mart = ensembl)
+1580695350412:saveRDS(HDAC_id_conversion, conversion_stash)
+1580695350451:}
+1580695360673:head(HDAC_id_conversion)
+1580695372086:head(HDAC_id_conversion$ensembl_gene_id)
+1580695440270:ENSG.with.HGNC.symbols <- HDAC_id_conversion$ensembl_gene_id
+1580695650474:head(d[ENSG.with.HGNC.symbols])
+1580695653784:head(d[ENSG.with.HGNC.symbols,])
+1580695660781:head(ENSG.with.HGNC.symbols)
+1580695673541:head(rnames(d))
+1580695679892:head(rownames(d))
+1580695715619:head(rownames(d) %in% ENSG.with.HGNC.symbols)
+1580695730380:rownames(d) %in% ENSG.with.HGNC.symbols
+1580695830596:head(d[rownames(d) %in% ENSG.with.HGNC.symbols,])
+1580695850920:rownames(d) %in% ENSG.with.HGNC.symbols
+1580695871863:d[rownames(d) %in% ENSG.with.HGNC.symbols,]
+1580695884999:nrow(d[rownames(d) %in% ENSG.with.HGNC.symbols,])
+1580695914975:nrow(diabetic.SAHA.DMSO.filtered)
+1580695924644:nrow(d[rownames(d) %in% ENSG.with.HGNC.symbols,])
+1580696061576:#MAP ENSG TO HGNC SYMBOLS
+1580696061599:#get mart object from useast mirror (this mirror was working at the time of running)
+1580696061622:ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+1580696063964:conversion_stash <- "SAHA_id_conversion.rds"
+1580696063990:if(file.exists(conversion_stash)){
+1580696064011:HDAC_id_conversion <- readRDS(conversion_stash)
+1580696064032:} else {
+1580696064050:HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+1580696064071:filters = c("ensembl_gene_id"),
+1580696064091:values = diabetic.SAHA.DMSO.filtered$Geneid,
+1580696064106:mart = ensembl)
+1580696064124:saveRDS(HDAC_id_conversion, conversion_stash)
+1580696064144:}
+1580696064212:ENSG.with.HGNC.symbols <- HDAC_id_conversion$ensembl_gene_id
+1580696064246:#Filter out gene rows which do not have HGNC symbols
+1580696064267:diabetic.SAHA.DMSO.filtered <- diabetic.SAHA.DMSO.filtered[rownames(d) %in% ENSG.with.HGNC.symbols,]
+1580696076743:#APPLYING TMM TO OUR DATASET
+1580696076771:filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
+1580696076803:rownames(filtered_data_matrix) <- diabetic.SAHA.DMSO.filtered$Geneid
+1580696076848:d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
+1580696076902:d = calcNormFactors(d)
+1580696077145:normalized_counts <- cpm(d)
+1580696077179:#normalized_counts <- d$counts
+1580696077214:#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+1580696077262:d <- estimateDisp(d)
+1580696086220:nrow(d)
+1580696092322:nrow(diabetic.SAHA.DMSO.filtered )
+1580696238060:#PLOT NON-NORMALIZED DATA
+1580696238114:#Distribution of our data - Density plot
+1580696238158:counts_density <- apply(log2(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)])), 2, density)
+1580696238311:#calculate the limits across all the samples
+1580696238351:xlim <- 0; ylim <- 0
+1580696238407:for (i in 1:length(counts_density)) {
+1580696238436:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580696238475:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580696238516:}
+1580696238585:cols <- rainbow(length(counts_density))
+1580696238631:ltys <- rep(1, length(counts_density))
+1580696238665:#plot the first density plot to initialize the plot
+1580696238690:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580696238713:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580696238810:#plot each line
+1580696238847:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580696238910:#create legend
+1580696238949:legend("topright", colnames(data2plot),
+1580696238975:col=cols, lty=ltys, cex=0.75,
+1580696238999:border ="blue",  text.col = "green4",
+1580696239023:merge = TRUE, bg = "gray90")
+1580696269440:#PLOT NON-NORMALIZED DATA
+1580696269500:#Distribution of our data - Density plot
+1580696269530:counts_density <- apply(log2(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)])), 2, density)
+1580696269695:#calculate the limits across all the samples
+1580696269754:xlim <- 0; ylim <- 0
+1580696269816:for (i in 1:length(counts_density)) {
+1580696269887:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580696269927:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580696269960:}
+1580696270060:cols <- rainbow(length(counts_density))
+1580696270084:ltys <- rep(1, length(counts_density))
+1580696270128:#plot the first density plot to initialize the plot
+1580696270189:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580696270215:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580696270292:#plot each line
+1580696270334:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580696270421:#create legend
+1580696270442:legend("topright", colnames(data2plot),
+1580696270458:col=cols, lty=ltys, cex=0.75,
+1580696270473:border ="blue",  text.col = "green4",
+1580696270488:merge = TRUE, bg = "gray90")
+1580696447497:samples
+1580696456025:rownames(diabetic.SAHA.DMSO.filtered)
+1580696461308:rownames(samples)
+1580696490907:#PLOT NON-NORMALIZED DATA
+1580696490944:#Distribution of our data - Density plot
+1580696490979:counts_density <- apply(log2(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)])), 2, density)
+1580696491100:#calculate the limits across all the samples
+1580696491145:xlim <- 0; ylim <- 0
+1580696491185:for (i in 1:length(counts_density)) {
+1580696491219:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580696491260:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580696491342:}
+1580696491464:cols <- rainbow(length(counts_density))
+1580696491574:ltys <- rep(1, length(counts_density))
+1580696491624:#plot the first density plot to initialize the plot
+1580696491668:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580696491703:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580696491775:#plot each line
+1580696491834:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580696491873:#create legend
+1580696491894:legend("topright", rownames(samples),
+1580696491917:col=cols, lty=ltys, cex=0.75,
+1580696491959:border ="blue",  text.col = "green4",
+1580696492049:merge = TRUE, bg = "gray90")
+1580696492129:#PLOT NORMALIZED DATA
+1580696492190:counts_density <- apply(log2(cpm((d$counts))), 2, density)
+1580696492317:#calculate the limits across all the samples
+1580696492357:xlim <- 0; ylim <- 0
+1580696492403:for (i in 1:length(counts_density)) {
+1580696492464:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580696492528:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580696492566:}
+1580696492632:cols <- rainbow(length(counts_density))
+1580696492673:ltys <- rep(1, length(counts_density))
+1580696492709:#plot the first density plot to initialize the plot
+1580696492738:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580696492768:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580696492937:#plot each line
+1580696493108:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580696493159:#create legend
+1580696493192:legend("topright", rownames(samples),
+1580696493226:col=cols, lty=ltys, cex=0.75,
+1580696493253:border ="blue",  text.col = "green4",
+1580696493283:merge = TRUE, bg = "gray90")
+1580696659392:identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
+1580697085835:samples$treatment
+1580697298307:d$samples
+1580697406312:filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
+1580697406335:rownames(filtered_data_matrix) <- diabetic.SAHA.DMSO.filtered$Geneid
+1580697410906:d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
+1580697414179:d = calcNormFactors(d, method="TMM")
+1580697417117:d$samples
+1580697430273:d <- estimateDisp(d)
+1580697436229:d$samples
+1580697446070:filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
+1580697446094:rownames(filtered_data_matrix) <- diabetic.SAHA.DMSO.filtered$Geneid
+1580697446124:d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
+1580697450325:d$samples
+1580697471923:#d = calcNormFactors(d, method="TMM")
+1580697471941:d = calcNormFactors(d)
+1580697474470:d$samples
+1580697882827:#MAKE AND MDS PLOT TO SEE THE DISTANCE BETWEEN THE SAMPLES
+1580697882863:plotMDS(d, labels=rownames(samples),
+1580697882904:col = c("darkgreen","blue")[factor(samples$cell_type)])
+1580697897359:#MAKE AND MDS PLOT TO SEE THE DISTANCE BETWEEN THE SAMPLES
+1580697897429:plotMDS(d, labels=rownames(samples),
+1580697897458:col = c("darkgreen","blue")[factor(samples$treatment)])
+1580697975832:#APPLYING TMM TO OUR DATASET
+1580697975853:filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
+1580697975880:rownames(filtered_data_matrix) <- diabetic.SAHA.DMSO.filtered$Geneid
+1580697975910:d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
+1580697975950:#d = calcNormFactors(d, method="TMM")
+1580697975971:d = calcNormFactors(d)
+1580697976159:normalized_counts <- cpm(d)
+1580697976196:#normalized_counts <- d$counts
+1580697976232:#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+1580697982059:#PLOT NON-NORMALIZED DATA
+1580697982151:#Distribution of our data - Density plot
+1580697982282:counts_density <- apply(log2(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)])), 2, density)
+1580697982463:#calculate the limits across all the samples
+1580697982554:xlim <- 0; ylim <- 0
+1580697982591:for (i in 1:length(counts_density)) {
+1580697982617:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580697982642:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580697982667:}
+1580697982721:cols <- rainbow(length(counts_density))
+1580697982755:ltys <- rep(1, length(counts_density))
+1580697982787:#plot the first density plot to initialize the plot
+1580697982814:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580697982839:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580697982893:#plot each line
+1580697982921:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580697982969:#create legend
+1580697982997:legend("topright", rownames(samples),
+1580697983033:col=cols, lty=ltys, cex=0.75,
+1580697983063:border ="blue",  text.col = "green4",
+1580697983088:merge = TRUE, bg = "gray90")
+1580697983138:#PLOT NORMALIZED DATA
+1580697983180:counts_density <- apply(log2(cpm(d$counts)), 2, density)
+1580697983316:#calculate the limits across all the samples
+1580697983372:xlim <- 0; ylim <- 0
+1580697983411:for (i in 1:length(counts_density)) {
+1580697983438:xlim <- range(c(xlim, counts_density[[i]]$x));
+1580697983462:ylim <- range(c(ylim, counts_density[[i]]$y))
+1580697983489:}
+1580697983540:cols <- rainbow(length(counts_density))
+1580697983578:ltys <- rep(1, length(counts_density))
+1580697983611:#plot the first density plot to initialize the plot
+1580697983641:plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n",
+1580697983666:ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+1580697983814:#plot each line
+1580697983845:for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+1580697983901:#create legend
+1580697983932:legend("topright", rownames(samples),
+1580697983964:col=cols, lty=ltys, cex=0.75,
+1580697983989:border ="blue",  text.col = "green4",
+1580697984019:merge = TRUE, bg = "gray90")
+1580697984062:#WHY ARE MY NORMALIZED AND ORIGINAL VALUES THE SAME??
+1580697984091:identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
+1580697993380:#WHY ARE MY NORMALIZED AND ORIGINAL VALUES THE SAME??
+1580697993399:identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
+1580698087908:#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+1580698087964:d <- estimateDisp(d)
+1580698090834:plotBCV(d,col.tagwise = "black",col.common = "red")

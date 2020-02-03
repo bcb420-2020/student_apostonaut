@@ -1,0 +1,3 @@
+"0","#MAKE AND MDS PLOT TO SEE THE DISTANCE BETWEEN THE SAMPLES"
+"0","plotMDS(d, labels=rownames(samples),"
+"0","  col = c(""darkgreen"",""blue"")[factor(samples$treatment)])"

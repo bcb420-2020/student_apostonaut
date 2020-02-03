@@ -1,0 +1,206 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+```{r}
+# check to ensure all needed packages are installed
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+if (!requireNamespace("GEOmetadb", quietly = TRUE))
+  BiocManager::install("GEOmetadb")
+
+if (!requireNamespace("edgeR", quietly = TRUE))
+  BiocManager::install("edgeR")
+
+if (!requireNamespace("biomaRt", quietly = TRUE))
+  BiocManager::install("biomaRt")
+```
+
+
+
+```{r}
+# load needed libraries
+library("GEOmetadb")
+library("edgeR")
+library("biomaRt")
+
+```
+
+
+```{r}
+#GET THE EXPRESSION DATA
+sfiles = getGEOSuppFiles('GSE77108')
+fnames = rownames(sfiles)
+# there is only one supplemental file
+HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+#SUBSET ONLY COLUMNS WHICH have diabetic cells and SAHA or DMSO treatment
+SAHA.DMSO <- HDAC[grep("DMSO|SAHA|Geneid", colnames(HDAC))]
+diabetic.SAHA.DMSO <- SAHA.DMSO[grep("D-|Geneid", colnames(SAHA.DMSO))]
+```
+
+
+```{r}
+#GENERATE "samples", METADATA ABOUT SAMPLES
+samples <- data.frame(lapply(colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)], 
+                             FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+colnames(samples) <- colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)]
+rownames(samples) <- c("treatment")
+samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+
+#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+DMSO <- grep("DMSO", rownames(samples))
+SAHA <- grep("SAHA", rownames(samples))
+samples$treatment[DMSO] = "DMSO"
+samples$treatment[SAHA] = "SAHA"
+```
+
+
+```{r}
+#FILTER OUT GENES THAT HAVE LOW COUNTS
+#use edgeR to calculate counts per million (cpms)
+cpms = cpm(diabetic.SAHA.DMSO[2:ncol(diabetic.SAHA.DMSO)])
+rownames(cpms) <- diabetic.SAHA.DMSO[,1]
+#use cpms to determine which of our ENSGs to throw out
+keep = rowSums(cpms >1) >=3
+diabetic.SAHA.DMSO.filtered = diabetic.SAHA.DMSO[keep,]
+rownames(diabetic.SAHA.DMSO.filtered) <- diabetic.SAHA.DMSO.filtered$Geneid
+```
+
+```{r}
+#MAP ENSG TO HGNC SYMBOLS
+#get mart object from useast mirror (this mirror was working at the time of running)
+ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+
+conversion_stash <- "SAHA_id_conversion.rds"
+if(file.exists(conversion_stash)){
+  HDAC_id_conversion <- readRDS(conversion_stash)
+} else {
+  HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+                               filters = c("ensembl_gene_id"),
+                               values = diabetic.SAHA.DMSO.filtered$Geneid,
+                               mart = ensembl)
+  saveRDS(HDAC_id_conversion, conversion_stash)
+}
+ENSG.with.HGNC.symbols <- HDAC_id_conversion$ensembl_gene_id
+
+#Filter out gene rows which do not have HGNC symbols
+diabetic.SAHA.DMSO.filtered <- diabetic.SAHA.DMSO.filtered[rownames(d) %in% ENSG.with.HGNC.symbols,]
+```
+
+
+```{r}
+#APPLYING TMM TO OUR DATASET
+filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
+rownames(filtered_data_matrix) <- diabetic.SAHA.DMSO.filtered$Geneid
+d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
+#d = calcNormFactors(d, method="TMM")
+d = calcNormFactors(d)
+normalized_counts <- cpm(d)
+#normalized_counts <- d$counts
+
+```
+
+```{r}
+#MAKE AND MDS PLOT TO SEE THE DISTANCE BETWEEN THE SAMPLES
+plotMDS(d, labels=rownames(samples),
+  col = c("darkgreen","blue")[factor(samples$treatment)])
+```
+
+
+
+
+
+
+PLOTS
+
+
+```{r}
+#PLOT NON-NORMALIZED DATA
+#Distribution of our data - Density plot
+counts_density <- apply(log2(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)])), 2, density)
+#calculate the limits across all the samples
+xlim <- 0; ylim <- 0
+for (i in 1:length(counts_density)) {
+  xlim <- range(c(xlim, counts_density[[i]]$x)); 
+  ylim <- range(c(ylim, counts_density[[i]]$y))
+}
+cols <- rainbow(length(counts_density))
+ltys <- rep(1, length(counts_density))
+#plot the first density plot to initialize the plot
+plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n", 
+     ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+#plot each line
+for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+#create legend
+legend("topright", rownames(samples),  
+       col=cols, lty=ltys, cex=0.75, 
+       border ="blue",  text.col = "green4", 
+       merge = TRUE, bg = "gray90") 
+
+#PLOT NORMALIZED DATA
+
+counts_density <- apply(log2(cpm(d$counts)), 2, density)
+#calculate the limits across all the samples
+xlim <- 0; ylim <- 0
+for (i in 1:length(counts_density)) {
+  xlim <- range(c(xlim, counts_density[[i]]$x)); 
+  ylim <- range(c(ylim, counts_density[[i]]$y))
+}
+cols <- rainbow(length(counts_density))
+ltys <- rep(1, length(counts_density))
+#plot the first density plot to initialize the plot
+plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n", 
+     ylab="Smoothing density of log2-CPM", main="", cex.lab = 0.85)
+#plot each line
+for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+#create legend
+legend("topright", rownames(samples),  
+       col=cols, lty=ltys, cex=0.75, 
+       border ="blue",  text.col = "green4", 
+       merge = TRUE, bg = "gray90") 
+
+#WHY ARE MY NORMALIZED AND ORIGINAL VALUES THE SAME??
+identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
+```
+
+
+```{r}
+#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)
+d <- estimateDisp(d)
+plotBCV(d,col.tagwise = "black",col.common = "red")
+```
+
+
+QUESTIONS TO ANSWER:
+
+The steps above conclude the actual data preparation. The report should also address the following questions:
+
+1.What are the control and test conditions of the dataset?
+A: Control condition: Diabetic epithelial cells treated with DMSO
+Test condition: Diabetic epithelial cells  treated with the HDAC inhibitor SAHA
+
+2. Why is the dataset of interest to you?
+A: I have worked with cancer data sets and studied cancers for many years. I have heard of HDAC inhibitors and knew that they were used as anti-cancer drugs, and was interested to explore their role in being a possible treatment for diabetes
+
+3. Were there expression values that were not unique for specific genes? How did you handle these?
+
+4. Were there expression values that could not be mapped to current HUGO symbols?
+Yes, there were ENSG symbols which could not be mapped to HGNC symbols using biomaRt. I removed these from the analysis, since we are required to 
+
+5. How many outliers were removed?
+A: I did not remove outliers
+
+How did you handle replicates?
+
+
+What is the final coverage of your dataset?
+

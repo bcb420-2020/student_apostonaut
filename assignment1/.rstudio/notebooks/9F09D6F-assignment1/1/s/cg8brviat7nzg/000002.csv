@@ -1,0 +1,5 @@
+"0","#estimate common and tagwise dispersion, model_design not used since there is only 1 dimension (i.e. cell type)"
+"0","d <- estimateDisp(d)"
+"1","Design matrix not provided. Switch to the classic mode.
+"
+"0","plotBCV(d,col.tagwise = ""black"",col.common = ""red"")"
