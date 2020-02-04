@@ -223,7 +223,7 @@ final.df <- log2(cpm(d))
 
 ```{r}
 #compile R notebook
-rmarkdown::render('assignment1.Rmd', output_format = 'html_document')
+#rmarkdown::render('assignment1.Rmd', output_format = 'html_document')
 ```
 
 # Remaining interpretation questions
