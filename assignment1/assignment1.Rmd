@@ -3,11 +3,12 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+What are the control and test conditions of the dataset?
+Control condition: Diabetic endothelial cells treated with DMSO
+Test condition: Diabetic endothelial cells  treated with the HDAC inhibitor SAHA
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+Why is the dataset of interest to you?
+I have worked with cancer data sets and studied cancers for many years. I have heard of HDAC inhibitors and knew that they were used as anti-cancer drugs, and was interested to explore their role in being a possible treatment for diabetes
 
 
 ```{r}
@@ -32,6 +33,8 @@ if (!requireNamespace("biomaRt", quietly = TRUE))
 library("GEOmetadb")
 library("edgeR")
 library("biomaRt")
+library("tidyr")
+library("dplyr")
 
 ```
 
@@ -56,7 +59,7 @@ colnames(samples) <- colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)]
 rownames(samples) <- c("treatment")
 samples <- data.frame(t(samples), stringsAsFactors=FALSE)
 
-#LABEL CELL TYPES AS "DIABETIC" OR "NORMAL"
+#LABEL CELL TYPES AS "DMSO" TREATED OR "SAHA" TREATED
 DMSO <- grep("DMSO", rownames(samples))
 SAHA <- grep("SAHA", rownames(samples))
 samples$treatment[DMSO] = "DMSO"
@@ -65,7 +68,7 @@ samples$treatment[SAHA] = "SAHA"
 
 
 ```{r}
-#FILTER OUT GENES THAT HAVE LOW COUNTS
+#FILTER OUT GENES THAT HAVE LOW COUNTS (CLEANING DATA)
 #use edgeR to calculate counts per million (cpms)
 cpms = cpm(diabetic.SAHA.DMSO[2:ncol(diabetic.SAHA.DMSO)])
 rownames(cpms) <- diabetic.SAHA.DMSO[,1]
@@ -74,6 +77,13 @@ keep = rowSums(cpms >1) >=3
 diabetic.SAHA.DMSO.filtered = diabetic.SAHA.DMSO[keep,]
 rownames(diabetic.SAHA.DMSO.filtered) <- diabetic.SAHA.DMSO.filtered$Geneid
 ```
+
+
+Were there expression values that could not be mapped to current HUGO symbols?
+There were ENSG symbols which could not be mapped to HGNC symbols using biomaRt. I removed these from the analysis, since we are required to use HGNC symbols as rownames.
+Initially, my filtered data frame had 13648 rows. My final data frame has 12609 rows. This difference of 1039 corresponds to both ENSG IDs that biomart did not recognize (700), as well as ENSG IDs which returned no HGNC symbol (339). 
+
+
 
 ```{r}
 #MAP ENSG TO HGNC SYMBOLS
@@ -90,27 +100,55 @@ if(file.exists(conversion_stash)){
                                mart = ensembl)
   saveRDS(HDAC_id_conversion, conversion_stash)
 }
-ENSG.with.HGNC.symbols <- HDAC_id_conversion$ensembl_gene_id
 
-#Filter out gene rows which do not have HGNC symbols
-diabetic.SAHA.DMSO.filtered <- diabetic.SAHA.DMSO.filtered[rownames(d) %in% ENSG.with.HGNC.symbols,]
+#NUMBER OF ROWS IN diabetic.SAHA.DMSO.filtered BEFORE REMOVING
+print("NUMBER OF ROWS IN diabetic.SAHA.DMSO.filtered BEFORE REMOVING"); nrow(diabetic.SAHA.DMSO.filtered)
+#REMOVE ROWS WHERE HGNC SYMBOLS ARE EMPTY STRING
+HDAC_id_conversion <- HDAC_id_conversion[HDAC_id_conversion$hgnc_symbol != "",]
+
+#NUMBER OF ENSG WITH HGNC SYMBOLS
+ENSG.with.HGNC.symbols <- HDAC_id_conversion$ensembl_gene_id
+print("ENSG.with.HGNC.symbols:"); length(ENSG.with.HGNC.symbols)
+
+#NUMBER OF ENSGs WHICH DIDN'T RETURN HGNC SYMBOLS
+print("NUMBER OF ENSGs WHICH DIDN'T RETURN HGNC SYMBOLS:"); nrow(diabetic.SAHA.DMSO.filtered) - length(ENSG.with.HGNC.symbols)
+
+
+#rename col in diabetic.SAHA.DMSO.filtered  to match HDAC_id_conversion
+colnames(diabetic.SAHA.DMSO.filtered)[colnames(diabetic.SAHA.DMSO.filtered) == "Geneid"] <- "ensembl_gene_id"
+#join by ensembl_gene_id
+diabetic.SAHA.DMSO.filtered <- dplyr::inner_join(diabetic.SAHA.DMSO.filtered , HDAC_id_conversion, by="ensembl_gene_id" )
+#make row names hgnc_symbol
+rownames(diabetic.SAHA.DMSO.filtered) <- diabetic.SAHA.DMSO.filtered$hgnc_symbol
+#remove hgnc_symbol column
+diabetic.SAHA.DMSO.filtered <- diabetic.SAHA.DMSO.filtered[colnames(diabetic.SAHA.DMSO.filtered) != "hgnc_symbol"]
+
+#concatenating ensgid and hgnc
+#tmp <- HDAC_id_conversion %>% unite(tmp, c("ensembl_gene_id","hgnc_symbol")) 
+
+#HPRT1
+#HPRT1_ensg <- HDAC_id_conversion$ensembl_gene_id[grep("HPRT1", HDAC_id_conversion$hgnc_symbol)]
+#diabetic.SAHA.DMSO.filtered[HPRT1_ensg,]
 ```
 
 
+
 ```{r}
-#APPLYING TMM TO OUR DATASET
+#APPLYING TMM TO THE DATASET
 filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
-rownames(filtered_data_matrix) <- diabetic.SAHA.DMSO.filtered$Geneid
+rownames(filtered_data_matrix) <- rownames(diabetic.SAHA.DMSO.filtered)
 d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
 #d = calcNormFactors(d, method="TMM")
 d = calcNormFactors(d)
 normalized_counts <- cpm(d)
-#normalized_counts <- d$counts
 
 ```
 
+
+#MAKE MDS PLOT TO SEE THE DISTANCE BETWEEN THE SAMPLES
+DMSO and SAHA treated diabetic cells seem to cluster together for the mostpart, with the exception of D-SAHA-2 along dimension 2. 
 ```{r}
-#MAKE AND MDS PLOT TO SEE THE DISTANCE BETWEEN THE SAMPLES
+
 plotMDS(d, labels=rownames(samples),
   col = c("darkgreen","blue")[factor(samples$treatment)])
 ```
@@ -119,8 +157,6 @@ plotMDS(d, labels=rownames(samples),
 
 
 
-
-PLOTS
 
 
 ```{r}
@@ -168,9 +204,13 @@ legend("topright", rownames(samples),
        border ="blue",  text.col = "green4", 
        merge = TRUE, bg = "gray90") 
 
-#WHY ARE MY NORMALIZED AND ORIGINAL VALUES THE SAME??
-identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
+#identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
 ```
+
+NORMALIZATION
+
+-In the paper, it is stated that" ...(aligned using) STAR. The tool feature Counts was used to generate a matrix of read counts per gene and the edgeR software was then used to determine differential gene expression", and also "Gene expression changes were determined by normalizing against HPRT1." [1]
+-It seems like normalization has already been done on these samples, since upon TMM normalization of the data, there is no perceptible change in the density plots 
 
 
 ```{r}
@@ -179,28 +219,31 @@ d <- estimateDisp(d)
 plotBCV(d,col.tagwise = "black",col.common = "red")
 ```
 
+Final data frame "diabetic.SAHA.DMSO.filtered".
+As specified in the assignment, this data frame has x=6 columns, one for each sample, and the rownames are HGNC symbols obtained from biomaRt
+```{r}
+#remove column "ensembl_gene_id"
+diabetic.SAHA.DMSO.filtered <- diabetic.SAHA.DMSO.filtered[2:ncol(diabetic.SAHA.DMSO.filtered)]
+```
 
-QUESTIONS TO ANSWER:
 
-The steps above conclude the actual data preparation. The report should also address the following questions:
-
-1.What are the control and test conditions of the dataset?
-A: Control condition: Diabetic epithelial cells treated with DMSO
-Test condition: Diabetic epithelial cells  treated with the HDAC inhibitor SAHA
-
-2. Why is the dataset of interest to you?
-A: I have worked with cancer data sets and studied cancers for many years. I have heard of HDAC inhibitors and knew that they were used as anti-cancer drugs, and was interested to explore their role in being a possible treatment for diabetes
-
-3. Were there expression values that were not unique for specific genes? How did you handle these?
-
-4. Were there expression values that could not be mapped to current HUGO symbols?
-Yes, there were ENSG symbols which could not be mapped to HGNC symbols using biomaRt. I removed these from the analysis, since we are required to 
-
-5. How many outliers were removed?
-A: I did not remove outliers
+# Remaining interpretation questions
 
 How did you handle replicates?
+I have 6 samples, and split them into 2 groups: 3 DMSO treatment and 3 SAHA treatment.
+
+Were there expression values that were not unique for specific genes? How did you handle these?
+
+
+How many outliers were removed?
+ I did not remove outliers
 
 
 What is the final coverage of your dataset?
+The final coverage is 12609 HGNC rows in my final data frame.
+
+
+## References
+
+[1] Rafehi H, Kaspi A, Ziemann M, Okabe J, Karagiannis TC, El-Osta A. "Systems approach to the pharmacological actions of HDAC inhibitors reveals EP300 activities and convergent mechanisms of regulation in diabetes." Epigenetics. 2017;12(11):991-1003. doi: 10.1080/15592294.2017.1371892.
 
