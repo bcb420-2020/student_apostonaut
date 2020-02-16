@@ -1,0 +1,206 @@
+---
+title: "Assignment 2: Expression analysis for SAHA treatment of diabetic endothelial cells"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+bibliography: assignment2.bib
+---
+
+
+
+# Install and load needed packages
+```{r, message=FALSE, echo=FALSE}
+# check to ensure all needed packages are installed
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+if (!requireNamespace("GEOmetadb", quietly = TRUE))
+  BiocManager::install("GEOmetadb")
+
+if (!requireNamespace("edgeR", quietly = TRUE))
+  BiocManager::install("edgeR")
+
+if (!requireNamespace("biomaRt", quietly = TRUE))
+  BiocManager::install("biomaRt")
+```
+
+
+```{r, message=FALSE, echo=FALSE}
+# load needed libraries
+library("GEOmetadb")
+library("edgeR")
+library("biomaRt")
+library("tidyr")
+library("dplyr")
+
+```
+
+
+# Download expression data from GEO
+```{r, message=FALSE, echo=FALSE}
+#GET THE EXPRESSION DATA
+sfiles = getGEOSuppFiles('GSE77108')
+fnames = rownames(sfiles)
+# there is only one supplemental file
+HDAC = read.delim(fnames[1],header=TRUE, check.names = FALSE)
+#SUBSET ONLY COLUMNS WHICH have diabetic cells and SAHA or DMSO treatment
+SAHA.DMSO <- HDAC[grep("DMSO|SAHA|Geneid", colnames(HDAC))]
+diabetic.SAHA.DMSO <- SAHA.DMSO[grep("D-|Geneid", colnames(SAHA.DMSO))]
+```
+
+
+```{r, echo=FALSE}
+#GENERATE "samples", METADATA ABOUT SAMPLES
+samples <- data.frame(lapply(colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)], 
+                             FUN=function(x){unlist(strsplit(x, split = "\\."))[c(2)]}))
+colnames(samples) <- colnames(diabetic.SAHA.DMSO)[2:ncol(diabetic.SAHA.DMSO)]
+rownames(samples) <- c("treatment")
+samples <- data.frame(t(samples), stringsAsFactors=FALSE)
+
+#LABEL CELL TYPES AS "DMSO" TREATED OR "SAHA" TREATED
+DMSO <- grep("DMSO", rownames(samples))
+SAHA <- grep("SAHA", rownames(samples))
+samples$treatment[DMSO] = "DMSO"
+samples$treatment[SAHA] = "SAHA"
+```
+
+
+```{r, echo=FALSE}
+#FILTER OUT GENES THAT HAVE LOW COUNTS (CLEANING DATA)
+#use edgeR to calculate counts per million (cpms)
+cpms = cpm(diabetic.SAHA.DMSO[2:ncol(diabetic.SAHA.DMSO)])
+rownames(cpms) <- diabetic.SAHA.DMSO[,1]
+#use cpms to determine which of our ENSGs to throw out
+keep = rowSums(cpms >1) >=3
+diabetic.SAHA.DMSO.filtered = diabetic.SAHA.DMSO[keep,]
+rownames(diabetic.SAHA.DMSO.filtered) <- diabetic.SAHA.DMSO.filtered$Geneid
+```
+
+
+
+```{r, echo=FALSE}
+#MAP ENSG TO HGNC SYMBOLS
+#get mart object from useast mirror (this mirror was working at the time of running)
+ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+
+conversion_stash <- "SAHA_id_conversion.rds"
+if(file.exists(conversion_stash)){
+  HDAC_id_conversion <- readRDS(conversion_stash)
+} else {
+  HDAC_id_conversion <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"),
+                               filters = c("ensembl_gene_id"),
+                               values = diabetic.SAHA.DMSO.filtered$Geneid,
+                               mart = ensembl)
+  saveRDS(HDAC_id_conversion, conversion_stash)
+}
+
+
+#rename col in diabetic.SAHA.DMSO.filtered  to match HDAC_id_conversion
+colnames(diabetic.SAHA.DMSO.filtered)[colnames(diabetic.SAHA.DMSO.filtered) == "Geneid"] <- "ensembl_gene_id"
+#join by ensembl_gene_id
+diabetic.SAHA.DMSO.filtered <- dplyr::inner_join(diabetic.SAHA.DMSO.filtered , HDAC_id_conversion, by="ensembl_gene_id" )
+#make row names ensembl_gene_id
+rownames(diabetic.SAHA.DMSO.filtered) <- diabetic.SAHA.DMSO.filtered$ensembl_gene_id
+#remove ensembl_gene_id column
+diabetic.SAHA.DMSO.filtered <- diabetic.SAHA.DMSO.filtered[colnames(diabetic.SAHA.DMSO.filtered) != "ensembl_gene_id"]
+#make hgnc_symbol first column
+diabetic.SAHA.DMSO.filtered <- diabetic.SAHA.DMSO.filtered[c(7,1:6)]
+#stop("Stop")
+
+```
+
+
+
+
+
+# INTRODUCTION  
+The dataset is from [GEO GSE77108](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE77108)[@HDAC_2017], and selects one of several treatment analysis in this paper. This paper corresponds to the GEO dataset with ID GSE77108. The treatment selected is SAHA treatment of a diabetic endothelial cell line as compared to control DMSO treatment. My workflow begins with the RNAseq read counts provided by the authors, which were obtained using the "Counts" feature of the STAR RNAseq aligner[@HDAC_2017].   
+Normalization has already been done by the authors using the HPRT1 housekeeping gene[@HDAC_2017]. However, I have gone ahead and normalized the data again anyway using TMM:
+
+## TMM normalization
+```{r}
+#APPLYING TMM NORMALIZATION TO THE DATASET
+filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
+rownames(filtered_data_matrix) <- rownames(diabetic.SAHA.DMSO.filtered)
+d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
+d = calcNormFactors(d)
+
+final.df <- log2(cpm(d))
+head(final.df)
+
+```
+
+The author's normalization is evident from the fact that there is only a very minimal shift in the density curves of the non-TMM-normalized (diabetic.SAHA.DMSO.filtered) and TMM-normalized(d) data below:
+
+## Plotting of density curves
+```{r, echo=FALSE}
+#PLOT NON-NORMALIZED DATA
+#Distribution of our data - Density plot
+counts_density <- apply(log2(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)])), 2, density)
+#calculate the limits across all the samples
+xlim <- 0; ylim <- 0
+for (i in 1:length(counts_density)) {
+  xlim <- range(c(xlim, counts_density[[i]]$x)); 
+  ylim <- range(c(ylim, counts_density[[i]]$y))
+}
+cols <- rainbow(length(counts_density))
+ltys <- rep(1, length(counts_density))
+#plot the first density plot to initialize the plot
+plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n", 
+     ylab="Smoothing density of log2-CPM", main="Density curve for non-normalized counts per million", cex.lab = 0.85)
+#plot each line
+for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+#create legend
+legend("topright", rownames(samples),  
+       col=cols, lty=ltys, cex=0.75, 
+       border ="blue",  text.col = "green4", 
+       merge = TRUE, bg = "gray90") 
+
+#PLOT NORMALIZED DATA
+
+counts_density <- apply(log2(cpm(d)), 2, density)
+#calculate the limits across all the samples
+xlim <- 0; ylim <- 0
+for (i in 1:length(counts_density)) {
+  xlim <- range(c(xlim, counts_density[[i]]$x)); 
+  ylim <- range(c(ylim, counts_density[[i]]$y))
+}
+cols <- rainbow(length(counts_density))
+ltys <- rep(1, length(counts_density))
+#plot the first density plot to initialize the plot
+plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n", 
+     ylab="Smoothing density of log2-CPM", main="Density curve for TMM normalized counts per million", cex.lab = 0.85)
+#plot each line
+for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
+#create legend
+legend("topright", rownames(samples),  
+       col=cols, lty=ltys, cex=0.75, 
+       border ="blue",  text.col = "green4", 
+       merge = TRUE, bg = "gray90") 
+
+#identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
+```
+
+
+# Differential Gene Expression 
+
+
+**MAKE MDS PLOT TO SEE THE DISTANCE BETWEEN THE SAMPLES**  
+DMSO and SAHA treated diabetic cells seem to cluster together for the mostpart, with the exception of D-SAHA-2 along dimension 2. 
+```{r}
+
+plotMDS(d, labels=rownames(samples),
+  col = c("darkgreen","blue")[factor(samples$treatment)])
+```
+
+
+
+```{r}
+#compile R notebook
+#rmarkdown::render('assignment2.Rmd', output_format = 'html_document')
+```
+
+# References
+
+
