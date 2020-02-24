@@ -23,6 +23,11 @@ if (!requireNamespace("edgeR", quietly = TRUE))
 
 if (!requireNamespace("biomaRt", quietly = TRUE))
   BiocManager::install("biomaRt")
+
+if (!requireNamespace("ComplexHeatmap", quietly = TRUE))
+  BiocManager::install("ComplexHeatmap")
+
+
 ```
 
 
@@ -33,6 +38,8 @@ library("edgeR")
 library("biomaRt")
 library("tidyr")
 library("dplyr")
+library("ComplexHeatmap")
+library(circlize)
 
 ```
 
@@ -126,8 +133,24 @@ rownames(filtered_data_matrix) <- rownames(diabetic.SAHA.DMSO.filtered)
 d = DGEList(counts=filtered_data_matrix, group=samples$treatment)
 d = calcNormFactors(d)
 
-final.df <- log2(cpm(d))
-head(final.df)
+final.df <- cpm(d)
+final.df.log2 <- log2(cpm(d))
+# add hgnc symbols as first column
+final.df.log2 <-cbind.data.frame(diabetic.SAHA.DMSO.filtered[,1],final.df.log2, stringsAsFactors = FALSE)
+colnames(final.df.log2)[1] <- "hgnc_symbol"
+
+
+
+
+# The reason we were getting -Inf values is because the values were "0" prior to log2 transformation
+#neg.inf.ensg_ids <- rownames(df[apply(df, 1, function(r) any(r %in% c(-Inf))),])
+#look.at <- final.df[neg.inf.ensg_ids,]
+
+
+#remove values which have -Inf as values in matrix
+final.df <- final.df.log2[!apply(final.df.log2, 1, function(r) any(r %in% c(-Inf))),]
+
+
 
 ```
 
@@ -201,6 +224,59 @@ plotMDS(d, labels=rownames(samples),
 #rmarkdown::render('assignment2.Rmd', output_format = 'html_document')
 ```
 
-# References
 
+The heatmap shows that DMSO and SAHA treated are clustering separately.
+
+
+```{r}
+#Make HEATMAP ==> TAKES LONG TIME, ONLY PRINT HEATMAP AT VERY END
+heatmap_matrix <- head(final.df, 1000)
+
+heatmap_matrix <- t(scale(t(heatmap_matrix)))
+heatmap_col = colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("blue", "white", "red"))
+
+current_heatmap <- Heatmap(as.matrix(heatmap_matrix),
+                               show_row_dend = TRUE,
+                               show_column_dend = TRUE, 
+                               col=heatmap_col,
+                               show_column_names = TRUE, 
+                               show_row_names = FALSE,
+                               show_heatmap_legend = TRUE
+                               )
+#current_heatmap
+
+```
+
+
+```{r}
+#CREATE DATA MATRIX
+
+model_design <- model.matrix(~ samples$treatment)
+expressionMatrix <- as.matrix(final.df[,2:ncol(final.df)])
+#USE LIMMA PACKAGE
+minimalSet <- ExpressionSet(assayData=expressionMatrix)
+fit <- lmFit(minimalSet, model_design)
+#Apply empircal Bayes to compute differential expression
+fit2 <- eBayes(fit,trend=TRUE)
+
+topfit <- topTable(fit2, 
+                   coef=ncol(model_design),
+                   adjust.method = "BH",
+                   number = nrow(expressionMatrix))
+# #sort by pvalue
+output_hits <- topfit[order(topfit$P.Value),]
+length(which(output_hits$P.Value < 0.000001))
+length(which(output_hits$adj.P.Val < 0.000001))
+
+#merge hgnc names to topfit table
+# output_hits <- merge(normalized_count_data[,1:2],
+#                      topfit,
+#                      by.y=0,by.x=1,
+#                      all.y=TRUE)
+# #sort by pvalue
+# output_hits <- output_hits[order(output_hits$P.Value),]
+```
+
+# References
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4670218/ # shows CPA4 upregulated upon HDAC treatment
 
