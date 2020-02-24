@@ -230,19 +230,19 @@ The heatmap shows that DMSO and SAHA treated are clustering separately.
 
 ```{r}
 #Make HEATMAP ==> TAKES LONG TIME, ONLY PRINT HEATMAP AT VERY END
-heatmap_matrix <- head(final.df, 1000)
-
-heatmap_matrix <- t(scale(t(heatmap_matrix)))
-heatmap_col = colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("blue", "white", "red"))
-
-current_heatmap <- Heatmap(as.matrix(heatmap_matrix),
-                               show_row_dend = TRUE,
-                               show_column_dend = TRUE, 
-                               col=heatmap_col,
-                               show_column_names = TRUE, 
-                               show_row_names = FALSE,
-                               show_heatmap_legend = TRUE
-                               )
+# heatmap_matrix <- head(final.df, 1000)
+# 
+# heatmap_matrix <- t(scale(t(heatmap_matrix)))
+# heatmap_col = colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("blue", "white", "red"))
+# 
+# current_heatmap <- Heatmap(as.matrix(heatmap_matrix),
+#                                show_row_dend = TRUE,
+#                                show_column_dend = TRUE, 
+#                                col=heatmap_col,
+#                                show_column_names = TRUE, 
+#                                show_row_names = FALSE,
+#                                show_heatmap_legend = TRUE
+#                                )
 #current_heatmap
 
 ```
@@ -260,21 +260,25 @@ fit <- lmFit(minimalSet, model_design)
 fit2 <- eBayes(fit,trend=TRUE)
 
 topfit <- topTable(fit2, 
+                   sort.by="none",
                    coef=ncol(model_design),
                    adjust.method = "BH",
                    number = nrow(expressionMatrix))
-# #sort by pvalue
-output_hits <- topfit[order(topfit$P.Value),]
-length(which(output_hits$P.Value < 0.000001))
-length(which(output_hits$adj.P.Val < 0.000001))
 
-#merge hgnc names to topfit table
-# output_hits <- merge(normalized_count_data[,1:2],
+# output_hits <- merge(final.df[,1],
 #                      topfit,
 #                      by.y=0,by.x=1,
 #                      all.y=TRUE)
+topfit <-cbind.data.frame(diabetic.SAHA.DMSO.filtered[,1],topfit, stringsAsFactors = FALSE)
+colnames(topfit)[1] <- "hgnc_symbol"
+
 # #sort by pvalue
-# output_hits <- output_hits[order(output_hits$P.Value),]
+output_hits <- topfit[order(topfit$P.Value),]
+pval <- 0.00001
+length(which(output_hits$P.Value < pval))
+length(which(output_hits$adj.P.Val < pval))
+
+#cat(noquote(output_hits$hgnc_symbol[which(output_hits$adj.P.Val < pval)]))
 ```
 
 # References
