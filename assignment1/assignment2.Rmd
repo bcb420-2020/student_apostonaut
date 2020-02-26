@@ -148,62 +148,24 @@ colnames(final.df.log2)[1] <- "hgnc_symbol"
 
 
 #remove values which have -Inf as values in matrix
-final.df <- final.df.log2[!apply(final.df.log2, 1, function(r) any(r %in% c(-Inf))),]
+#final.df <- final.df.log2[!apply(final.df.log2, 2, function(r) any(r %in% c(-Inf))),]
+final.df <- final.df.log2
+final.df[final.df== -Inf] <- 0
+#final.df <- do.call(data.frame,lapply(final.df, function(x) replace(x, is.infinite(x),0)))
 
-
+#This one still has -Inf??
+#df.MAST1 <- final.df[final.df$hgnc_symbol == "MAST1",]
+#df.MAST1[df.MAST1== -Inf] <- 0
+#do.call(data.frame,lapply(df.MAST1, function(x) replace(x, is.infinite(x),0)))
 
 ```
+
+
+
+
 
 The author's normalization is evident from the fact that there is only a very minimal shift in the density curves of the non-TMM-normalized (diabetic.SAHA.DMSO.filtered) and TMM-normalized(d) data below:
 
-## Plotting of density curves
-```{r, echo=FALSE}
-#PLOT NON-NORMALIZED DATA
-#Distribution of our data - Density plot
-counts_density <- apply(log2(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)])), 2, density)
-#calculate the limits across all the samples
-xlim <- 0; ylim <- 0
-for (i in 1:length(counts_density)) {
-  xlim <- range(c(xlim, counts_density[[i]]$x)); 
-  ylim <- range(c(ylim, counts_density[[i]]$y))
-}
-cols <- rainbow(length(counts_density))
-ltys <- rep(1, length(counts_density))
-#plot the first density plot to initialize the plot
-plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n", 
-     ylab="Smoothing density of log2-CPM", main="Density curve for non-normalized counts per million", cex.lab = 0.85)
-#plot each line
-for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
-#create legend
-legend("topright", rownames(samples),  
-       col=cols, lty=ltys, cex=0.75, 
-       border ="blue",  text.col = "green4", 
-       merge = TRUE, bg = "gray90") 
-
-#PLOT NORMALIZED DATA
-
-counts_density <- apply(log2(cpm(d)), 2, density)
-#calculate the limits across all the samples
-xlim <- 0; ylim <- 0
-for (i in 1:length(counts_density)) {
-  xlim <- range(c(xlim, counts_density[[i]]$x)); 
-  ylim <- range(c(ylim, counts_density[[i]]$y))
-}
-cols <- rainbow(length(counts_density))
-ltys <- rep(1, length(counts_density))
-#plot the first density plot to initialize the plot
-plot(counts_density[[1]], xlim=xlim, ylim=ylim, type="n", 
-     ylab="Smoothing density of log2-CPM", main="Density curve for TMM normalized counts per million", cex.lab = 0.85)
-#plot each line
-for (i in 1:length(counts_density)) lines(counts_density[[i]], col=cols[i], lty=ltys[i])
-#create legend
-legend("topright", rownames(samples),  
-       col=cols, lty=ltys, cex=0.75, 
-       border ="blue",  text.col = "green4", 
-       merge = TRUE, bg = "gray90") 
-
-#identical(cpm(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO.filtered)]), cpm(d$counts))
-```
 
 
 # Differential Gene Expression 
@@ -213,8 +175,8 @@ legend("topright", rownames(samples),
 DMSO and SAHA treated diabetic cells seem to cluster together for the mostpart, with the exception of D-SAHA-2 along dimension 2. 
 ```{r}
 
-plotMDS(d, labels=rownames(samples),
-  col = c("darkgreen","blue")[factor(samples$treatment)])
+# plotMDS(d, labels=rownames(samples),
+#   col = c("darkgreen","blue")[factor(samples$treatment)])
 ```
 
 
@@ -259,10 +221,12 @@ fit <- lmFit(minimalSet, model_design)
 #Apply empircal Bayes to compute differential expression
 fit2 <- eBayes(fit,trend=TRUE)
 
+adjust.method = "BH"
+#adjust.method="bonferroni"
 topfit <- topTable(fit2, 
                    sort.by="none",
                    coef=ncol(model_design),
-                   adjust.method = "BH",
+                   adjust.method = adjust.method,
                    number = nrow(expressionMatrix))
 
 # output_hits <- merge(final.df[,1],
@@ -272,15 +236,58 @@ topfit <- topTable(fit2,
 topfit <-cbind.data.frame(diabetic.SAHA.DMSO.filtered[,1],topfit, stringsAsFactors = FALSE)
 colnames(topfit)[1] <- "hgnc_symbol"
 
-# #sort by pvalue
+# SORT AND FILTER BY PVAL
+pval <- 0.05
+#ORDER BY P-VALUE
 output_hits <- topfit[order(topfit$P.Value),]
-pval <- 0.00001
-length(which(output_hits$P.Value < pval))
 length(which(output_hits$adj.P.Val < pval))
+#FILTER BY P-VALUE THRESHOLD
+output_hits <-  output_hits[which(output_hits$adj.P.Val < pval),]
+# SORT BY DECREASING EXPRESSION VALUE
+output_hits <- output_hits[order(output_hits$logFC, decreasing = TRUE),]
 
-#cat(noquote(output_hits$hgnc_symbol[which(output_hits$adj.P.Val < pval)]))
+testing <- 1
+if (testing){
+    output_hits[order(output_hits$AveExpr),]
+    nrow(output_hits)
+    # MAYBE COLOUR THESE DOTS IN THE MA PLOT (THE INCREASE/DECREASE EXPRESSION PLOT)
+    output_hits[output_hits$hgnc_symbol == "MAST1",]
+    output_hits[output_hits$hgnc_symbol == "VCAN",]
+    output_hits[output_hits$hgnc_symbol == "CD58",]
+    output_hits[output_hits$hgnc_symbol == "CD200",]
+    output_hits[output_hits$hgnc_symbol == "SIGIRR",]
+}
+# #UPREGULATED
+# output_hits.up <- output_hits[which(output_hits$t > 0),]
+# length(which(output_hits.up$adj.P.Val < pval))
+# up.down="up."
+# #cat(noquote(output_hits$hgnc_symbol[which(output_hits$adj.P.Val < pval)]))
+# write(output_hits$hgnc_symbol[which(output_hits.up$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
+# 
+# #TEST
+# grep("NOTCH3", output_hits.up)
+# 
+# #DOWNREGULATED
+# output_hits.down <- output_hits[which(output_hits$t < 0),]
+# length(which(output_hits.up$adj.P.Val < pval))
+# up.down="down."
+# write(output_hits$hgnc_symbol[which(output_hits.down$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
 ```
+
+```{r}
+print("hi")
+```
+
+
+```{r}
+# http://web.mit.edu/~r/current/arch/i386_linux26/lib/R/library/geneplotter/html/plotMA.html
+
+plot <- plotMA(output_hits[c(2:3)])
+#plotMA(log2(ca125_exp[,c(3,4)]), ylab="M - ratio log expression", main="CA125 + vs - - example")
+```
+
 
 # References
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4670218/ # shows CPA4 upregulated upon HDAC treatment
+https://www.ncbi.nlm.nih.gov/pubmed/25050608 # shows HDAC inhibitors attenuate Wnt signalling pathway (this is found in gene set bonferroni.0.005.gene_hits.txt, BH.5e-06.gene_hits.txt)
 
