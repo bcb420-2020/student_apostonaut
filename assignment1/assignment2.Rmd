@@ -27,6 +27,11 @@ if (!requireNamespace("biomaRt", quietly = TRUE))
 if (!requireNamespace("ComplexHeatmap", quietly = TRUE))
   BiocManager::install("ComplexHeatmap")
 
+if (!requireNamespace("gProfileR", quietly = TRUE))
+  BiocManager::install("gProfileR")
+
+if (!requireNamespace("gprofiler2", quietly = TRUE))
+  BiocManager::install("gprofiler2")
 
 ```
 
@@ -40,7 +45,8 @@ library("tidyr")
 library("dplyr")
 library("ComplexHeatmap")
 library(circlize)
-
+library("gprofiler2")
+library("stringr")
 ```
 
 
@@ -187,29 +193,6 @@ DMSO and SAHA treated diabetic cells seem to cluster together for the mostpart, 
 ```
 
 
-The heatmap shows that DMSO and SAHA treated are clustering separately.
-
-
-```{r}
-#Make HEATMAP ==> TAKES LONG TIME, ONLY PRINT HEATMAP AT VERY END
-# heatmap_matrix <- head(final.df, 1000)
-# 
-# heatmap_matrix <- t(scale(t(heatmap_matrix)))
-# heatmap_col = colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("blue", "white", "red"))
-# 
-# current_heatmap <- Heatmap(as.matrix(heatmap_matrix),
-#                                show_row_dend = TRUE,
-#                                show_column_dend = TRUE, 
-#                                col=heatmap_col,
-#                                show_column_names = TRUE, 
-#                                show_row_names = FALSE,
-#                                show_heatmap_legend = TRUE
-#                                )
-#current_heatmap
-
-```
-
-
 ```{r}
 #CREATE DATA MATRIX
 
@@ -235,9 +218,9 @@ colnames(topfit)[1] <- "hgnc_symbol"
 
 ```
 
+# SHOW DIFFERENTIALLY EXPRESSED GENES
 
 ```{r}
-#USE INDEX VALUES OF output_hits.up and output_hits.down to 
 plot(topfit$AveExpr,topfit$logFC)
 pval <- 0.05
 # create up and down indices using pval cutoff and logFC
@@ -252,44 +235,139 @@ points(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], col = "st
 text(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], labels=c("VCAN", "CD58", "CD200",  "SIGIRR"), cex= 0.7, pos=2)
 ```
 
+# VISUALIZE TOP HITS USING HEATMAP
+The heatmap shows that DMSO and SAHA treated are clustering separately.
+
+```{r}
+#Make HEATMAP ==> TAKES LONG TIME, ONLY PRINT HEATMAP AT VERY END
+# get significant indices
+significant.index <- which((topfit$adj.P.Val < pval))
+heatmap_matrix <- final.df[significant.index, 2:ncol(final.df)]
+heatmap_matrix <- head(heatmap_matrix, 1000)
+
+heatmap_matrix <- t(scale(t(heatmap_matrix)))
+heatmap_col = colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("blue", "white", "red"))
+
+current_heatmap <- Heatmap(as.matrix(heatmap_matrix),
+                               show_row_dend = TRUE,
+                               show_column_dend = TRUE,
+                               col=heatmap_col,
+                               show_column_names = TRUE,
+                               show_row_names = FALSE,
+                               show_heatmap_legend = TRUE
+                               )
+current_heatmap
+
+```
+
 
 # Investigate data (using top hits)
 ```{r}
-
-# SORT AND FILTER BY PVAL
+library("gprofiler2") # https://biit.cs.ut.ee/gprofiler/page/r-new
 pval <- 0.05
-#ORDER BY P-VALUE
-output_hits <- topfit[order(topfit$P.Value),]
-length(which(output_hits$adj.P.Val < pval))
-#FILTER BY P-VALUE THRESHOLD
-output_hits.pval <-  output_hits[which(output_hits$adj.P.Val < pval),]
-# SORT BY DECREASING EXPRESSION VALUE
-output_hits.pval <- output_hits[order(output_hits.pval$logFC, decreasing = TRUE),]
 
-testing <- 0
-if (testing){
-    output_hits.pval[order(output_hits.pval$AveExpr),]
-    nrow(output_hits.pval)
-    # MAYBE COLOUR THESE DOTS IN THE MA PLOT (THE INCREASE/DECREASE EXPRESSION PLOT)
-    output_hits.pval[output_hits.pval$hgnc_symbol == "MAST1",]
-    output_hits.pval[output_hits.pval$hgnc_symbol == "VCAN",]
-    output_hits.pval[output_hits.pval$hgnc_symbol == "CD58",]
-    output_hits.pval[output_hits.pval$hgnc_symbol == "CD200",]
-    output_hits.pval[output_hits.pval$hgnc_symbol == "SIGIRR",]
+#ALL
+significant.index <- which((topfit$adj.P.Val < pval))
+sign.genes.all <- topfit[significant.index,]$hgnc_symbol
+#gprofiler.results <- gost(sign.genes.all, organism = "hsapiens" )
+#QUERY GPROFILER
+gprofiler.stash <- "gprofiler.ALL.results.rds"
+if(file.exists(gprofiler.stash)){
+  gprofiler.results <- readRDS(gprofiler.stash)
+} else {
+  gprofiler.results <- gost(sign.genes.all, organism = "hsapiens" )
+  saveRDS(gprofiler.results, gprofiler.stash)
 }
+gprofiler.results <- gprofiler.results$result
+
 #UPREGULATED
-output_hits.pval.up <- output_hits.pval[which(output_hits.pval$logFC > 0),]
-length(which(output_hits.pval.up$adj.P.Val < pval))
-up.down="up."
-#cat(noquote(output_hits.pval$hgnc_symbol[which(output_hits.pval$adj.P.Val < pval)]))
-#write(output_hits.pval$hgnc_symbol[which(output_hits.pval.up$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
+up.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC > 0))
+sign.genes.up <- topfit[up.index,]$hgnc_symbol
+#QUERY GPROFILER
+gprofiler.stash <- "gprofiler.UPREGULATED.results.rds"
+if(file.exists(gprofiler.stash)){
+  gprofiler.results.up <- readRDS(gprofiler.stash)
+} else {
+  gprofiler.results.up <- gost(sign.genes.up, organism = "hsapiens" )
+  saveRDS(gprofiler.results.up, gprofiler.stash)
+}
+gprofiler.results.up <- gprofiler.results.up$result
 
 
-output_hits.pval.down <- output_hits.pval[which(output_hits.pval$logFC < 0),]
-output_hits.pval.down <- output_hits.pval[order(output_hits.pval$logFC, decreasing = FALSE),]
-length(which(output_hits.pval.up$adj.P.Val < pval))
-up.down="down."
-# write(output_hits.pval$hgnc_symbol[which(output_hits.pval.down$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
+#DOWNREGULATED
+down.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC < 0))
+sign.genes.down <- topfit[down.index,]$hgnc_symbol
+#QUERY GPROFILER
+gprofiler.stash <- "gprofiler.DOWNREGULATED.results.rds"
+if(file.exists(gprofiler.stash)){
+  gprofiler.results.down <- readRDS(gprofiler.stash)
+} else {
+  gprofiler.results.down <- gost(sign.genes.down, organism = "hsapiens" )
+  saveRDS(gprofiler.results.down, gprofiler.stash)
+}
+gprofiler.results.down <- gprofiler.results.down$result
+
+
+#PATHWAYS
+pathways <- gprofiler.results[gprofiler.results$source =="GO:BP",]$term_name
+pathways.up <- gprofiler.results.up[gprofiler.results.up$source =="GO:BP",]$term_name
+pathways.down <- gprofiler.results.down[gprofiler.results.down$source =="GO:BP",]$term_name
+#WNT
+wnt <- pathways[grep("Wnt|wnt", pathways)]
+wnt.up <-pathways.up[grep("Wnt|wnt", pathways.up)]
+wnt.down <- pathways.down[grep("Wnt|wnt", pathways.down)]
+
+
+#SCRAP
+cols <- colnames(gprofiler.results$result)
+sources <-unique(gprofiler.results$source)
+#head(gprofiler.results$result$term_name)
+gprofiler.results.pathways <- gprofiler.results[gprofiler.results$source =="GO:BP",]
+# WNT
+Wnt <-gprofiler.results[grep("Wnt|wnt", gprofiler.results$term_name),]
+wnt <- gprofiler.results[grep("wnt", gprofiler.results$term_name),]
+small.terms <- gprofiler.results[gprofiler.results$term_size < 200,]
+wnt <- grep("Wnt", small.terms$term_name)
+
+
+#gprofiler.results <- gprofiler2::gprofiler2(noquote(sign.hits$hgnc_symbol), organism = "hsapiens" )
+# #gprofiler(query, organism = "hsapiens", sort_by_structure = T,
+#   ordered_query = F, significant = T, exclude_iea = F,
+#   underrep = F, evcodes = F, region_query = F, max_p_value = 1,
+#   min_set_size = 0, max_set_size = 0, min_isect_size = 0,
+#   correction_method = "analytical", hier_filtering = "none",
+#   domain_size = "annotated", custom_bg = "", numeric_ns = "",
+#   png_fn = NULL, include_graph = F, src_filter = NULL)
+
+#ORDER BY DECREASING P-VALUE
+#head(sign.hits)
+# SORT BY DECREASING EXPRESSION VALUE
+sign.hits <- sign.hits[order(sign.hits.pval$logFC, decreasing = TRUE),]
+
+# testing <- 0
+# if (testing){
+#     output_hits.pval[order(output_hits.pval$AveExpr),]
+#     nrow(output_hits.pval)
+#     # MAYBE COLOUR THESE DOTS IN THE MA PLOT (THE INCREASE/DECREASE EXPRESSION PLOT)
+#     output_hits.pval[output_hits.pval$hgnc_symbol == "MAST1",]
+#     output_hits.pval[output_hits.pval$hgnc_symbol == "VCAN",]
+#     output_hits.pval[output_hits.pval$hgnc_symbol == "CD58",]
+#     output_hits.pval[output_hits.pval$hgnc_symbol == "CD200",]
+#     output_hits.pval[output_hits.pval$hgnc_symbol == "SIGIRR",]
+# }
+# #UPREGULATED
+# output_hits.pval.up <- output_hits.pval[which(output_hits.pval$logFC > 0),]
+# length(which(output_hits.pval.up$adj.P.Val < pval))
+# up.down="up."
+# #cat(noquote(output_hits.pval$hgnc_symbol[which(output_hits.pval$adj.P.Val < pval)]))
+# #write(output_hits.pval$hgnc_symbol[which(output_hits.pval.up$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
+# 
+# 
+# output_hits.pval.down <- output_hits.pval[which(output_hits.pval$logFC < 0),]
+# output_hits.pval.down <- output_hits.pval[order(output_hits.pval$logFC, decreasing = FALSE),]
+# length(which(output_hits.pval.up$adj.P.Val < pval))
+# up.down="down."
+# # write(output_hits.pval$hgnc_symbol[which(output_hits.pval.down$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
 ```
 
 # References
