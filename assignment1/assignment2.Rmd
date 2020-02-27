@@ -242,47 +242,64 @@ pval <- 0.05
 output_hits <- topfit[order(topfit$P.Value),]
 length(which(output_hits$adj.P.Val < pval))
 #FILTER BY P-VALUE THRESHOLD
-output_hits <-  output_hits[which(output_hits$adj.P.Val < pval),]
+output_hits.pval <-  output_hits[which(output_hits$adj.P.Val < pval),]
 # SORT BY DECREASING EXPRESSION VALUE
-output_hits <- output_hits[order(output_hits$logFC, decreasing = TRUE),]
+output_hits.pval <- output_hits[order(output_hits.pval$logFC, decreasing = TRUE),]
 
-testing <- 1
+testing <- 0
 if (testing){
-    output_hits[order(output_hits$AveExpr),]
-    nrow(output_hits)
+    output_hits.pval[order(output_hits.pval$AveExpr),]
+    nrow(output_hits.pval)
     # MAYBE COLOUR THESE DOTS IN THE MA PLOT (THE INCREASE/DECREASE EXPRESSION PLOT)
-    output_hits[output_hits$hgnc_symbol == "MAST1",]
-    output_hits[output_hits$hgnc_symbol == "VCAN",]
-    output_hits[output_hits$hgnc_symbol == "CD58",]
-    output_hits[output_hits$hgnc_symbol == "CD200",]
-    output_hits[output_hits$hgnc_symbol == "SIGIRR",]
+    output_hits.pval[output_hits.pval$hgnc_symbol == "MAST1",]
+    output_hits.pval[output_hits.pval$hgnc_symbol == "VCAN",]
+    output_hits.pval[output_hits.pval$hgnc_symbol == "CD58",]
+    output_hits.pval[output_hits.pval$hgnc_symbol == "CD200",]
+    output_hits.pval[output_hits.pval$hgnc_symbol == "SIGIRR",]
 }
-# #UPREGULATED
-# output_hits.up <- output_hits[which(output_hits$t > 0),]
-# length(which(output_hits.up$adj.P.Val < pval))
-# up.down="up."
-# #cat(noquote(output_hits$hgnc_symbol[which(output_hits$adj.P.Val < pval)]))
-# write(output_hits$hgnc_symbol[which(output_hits.up$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
-# 
-# #TEST
-# grep("NOTCH3", output_hits.up)
-# 
-# #DOWNREGULATED
-# output_hits.down <- output_hits[which(output_hits$t < 0),]
-# length(which(output_hits.up$adj.P.Val < pval))
-# up.down="down."
-# write(output_hits$hgnc_symbol[which(output_hits.down$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
-```
+#UPREGULATED
+output_hits.pval.up <- output_hits.pval[which(output_hits.pval$logFC > 0),]
+length(which(output_hits.pval.up$adj.P.Val < pval))
+up.down="up."
+#cat(noquote(output_hits.pval$hgnc_symbol[which(output_hits.pval$adj.P.Val < pval)]))
+#write(output_hits.pval$hgnc_symbol[which(output_hits.pval.up$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
 
-```{r}
-print("hi")
+# #TEST
+# grep("NOTCH3", output_hits.pval.up)
+# 
+#DOWNREGULATED
+
+output_hits.pval.down <- output_hits.pval[which(output_hits.pval$logFC < 0),]
+output_hits.pval.down <- output_hits.pval[order(output_hits.pval$logFC, decreasing = FALSE),]
+length(which(output_hits.pval.up$adj.P.Val < pval))
+up.down="down."
+# write(output_hits.pval$hgnc_symbol[which(output_hits.pval.down$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
 ```
 
 
 ```{r}
 # http://web.mit.edu/~r/current/arch/i386_linux26/lib/R/library/geneplotter/html/plotMA.html
 
-plot <- plotMA(output_hits[c(2:3)])
+#plot <- limma::plotMA(output_hits[c(3,2,6)])
+# plot <- limma::plotMA(topfit)
+#can take average expression values of samples for each condition, enter only 2 columns
+# expr.values <- final.df[,2:ncol(final.df)]
+# expr.values <- cbind(rowMeans(expr.values[,c(1:3)]), rowMeans(expr.values[,c(4:6)]))
+# colnames(expr.values) <- c("DMSO", "SAHA")
+# plot(expr.values)
+
+#USE INDEX VALUES OF output_hits.up and output_hits.down to 
+plot(topfit$AveExpr,topfit$logFC)
+#plot(output_hits$AveExpr,output_hits$logFC)
+pval <- 0.05
+down.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC < 0))
+up.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC > 0))
+# output_hits.pval <-  output_hits[which(output_hits$adj.P.Val < pval),]
+#up.index <-
+points(topfit$AveExpr[up.index], topfit$logFC[up.index], col = "green")
+points(topfit$AveExpr[down.index], topfit$logFC[down.index], col = "red")
+# points(up) # can label individual points, 
+# points(down)
 #plotMA(log2(ca125_exp[,c(3,4)]), ylab="M - ratio log expression", main="CA125 + vs - - example")
 ```
 
