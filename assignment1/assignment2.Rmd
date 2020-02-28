@@ -145,24 +145,10 @@ final.df.log2 <- log2(cpm(d))
 final.df.log2 <-cbind.data.frame(diabetic.SAHA.DMSO.filtered[,1],final.df.log2, stringsAsFactors = FALSE)
 colnames(final.df.log2)[1] <- "hgnc_symbol"
 
-
-
-
 # The reason we were getting -Inf values is because the values were "0" prior to log2 transformation
-#neg.inf.ensg_ids <- rownames(df[apply(df, 1, function(r) any(r %in% c(-Inf))),])
-#look.at <- final.df[neg.inf.ensg_ids,]
-
-
 #remove values which have -Inf as values in matrix
-#final.df <- final.df.log2[!apply(final.df.log2, 2, function(r) any(r %in% c(-Inf))),]
 final.df <- final.df.log2
 final.df[final.df== -Inf] <- 0
-#final.df <- do.call(data.frame,lapply(final.df, function(x) replace(x, is.infinite(x),0)))
-
-#This one still has -Inf??
-#df.MAST1 <- final.df[final.df$hgnc_symbol == "MAST1",]
-#df.MAST1[df.MAST1== -Inf] <- 0
-#do.call(data.frame,lapply(df.MAST1, function(x) replace(x, is.infinite(x),0)))
 
 ```
 
@@ -183,13 +169,6 @@ DMSO and SAHA treated diabetic cells seem to cluster together for the mostpart, 
 
 # plotMDS(d, labels=rownames(samples),
 #   col = c("darkgreen","blue")[factor(samples$treatment)])
-```
-
-
-
-```{r}
-#compile R notebook
-#rmarkdown::render('assignment2.Rmd', output_format = 'html_document')
 ```
 
 
@@ -330,6 +309,9 @@ small.terms <- gprofiler.results[gprofiler.results$term_size < 200,]
 wnt <- grep("Wnt", small.terms$term_name)
 
 
+# ANALYSIS OF EXPRESSION OF WNT TARGET GENES
+# wnt.targets <- c("MYC", "CCDN1", "VEGF", "MMP7", "LEF1", "TCF7L2")
+# topfit[topfit$hgnc_symbol %in% wnt.targets,]
 #gprofiler.results <- gprofiler2::gprofiler2(noquote(sign.hits$hgnc_symbol), organism = "hsapiens" )
 # #gprofiler(query, organism = "hsapiens", sort_by_structure = T,
 #   ordered_query = F, significant = T, exclude_iea = F,
