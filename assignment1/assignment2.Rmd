@@ -208,10 +208,24 @@ up.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC > 0))
 # colour points accordingly
 points(topfit$AveExpr[up.index], topfit$logFC[up.index], col = "green")
 points(topfit$AveExpr[down.index], topfit$logFC[down.index], col = "red")
-# Indices of diabetic inflammatory genes investigated in paper
-D.inflamm.index <- which((topfit$hgnc_symbol == "VCAN") | (topfit$hgnc_symbol == "CD58") | (topfit$hgnc_symbol == "CD200") | (topfit$hgnc_symbol == "SIGIRR"))
+#diabetic inflammatory genes investigated in paper
+D.inflamm.genes <- c("VCAN", "CD58", "CD200",  "SIGIRR", "CCL2", "ICAM2")
+D.inflamm.index <- which(topfit$hgnc_symbol %in% D.inflamm.genes )
 points(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], col = "steelblue1")
-text(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], labels=c("VCAN", "CD58", "CD200",  "SIGIRR"), cex= 0.7, pos=2)
+text(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], labels=D.inflamm.genes, cex= 0.7, pos=2)
+
+num.genes <- 2
+# Highest logFC genes
+top.up.genes <- head(topfit[order(topfit$logFC, decreasing = TRUE),], num.genes)$hgnc_symbol
+top.up.genes.idx <- which(topfit$hgnc_symbol %in% top.up.genes )
+labels.up <- topfit$hgnc_symbol[top.up.genes.idx]
+text(topfit$AveExpr[top.up.genes.idx], topfit$logFC[top.up.genes.idx], labels=labels.up, cex= 0.7, pos=2)
+#Lowest logFC genes
+top.down.genes <- head(topfit[order(topfit$logFC, decreasing = FALSE),], num.genes)$hgnc_symbol
+top.down.genes.idx <- which(topfit$hgnc_symbol %in% top.down.genes )
+labels.down <- topfit$hgnc_symbol[top.down.genes.idx]
+text(topfit$AveExpr[top.down.genes.idx], topfit$logFC[top.down.genes.idx], labels=labels.down, cex= 0.7, pos=2)
+
 ```
 
 # VISUALIZE TOP HITS USING HEATMAP
@@ -222,7 +236,7 @@ The heatmap shows that DMSO and SAHA treated are clustering separately.
 # get significant indices
 significant.index <- which((topfit$adj.P.Val < pval))
 heatmap_matrix <- final.df[significant.index, 2:ncol(final.df)]
-heatmap_matrix <- head(heatmap_matrix, 1000)
+# heatmap_matrix <- head(heatmap_matrix, 1000)
 
 heatmap_matrix <- t(scale(t(heatmap_matrix)))
 heatmap_col = colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("blue", "white", "red"))
@@ -235,7 +249,7 @@ current_heatmap <- Heatmap(as.matrix(heatmap_matrix),
                                show_row_names = FALSE,
                                show_heatmap_legend = TRUE
                                )
-current_heatmap
+#current_heatmap
 
 ```
 
@@ -286,29 +300,85 @@ if(file.exists(gprofiler.stash)){
 }
 gprofiler.results.down <- gprofiler.results.down$result
 
-
-#PATHWAYS
+#WNT
+wnt <- gprofiler.results[grep("Wnt|wnt", gprofiler.results$term_name),]
+wnt.up <- gprofiler.results.up[grep("Wnt|wnt", gprofiler.results.up$term_name),]
+wnt.down <- gprofiler.results.down[grep("Wnt|wnt", gprofiler.results.down$term_name),]
+#BP
 pathways <- gprofiler.results[gprofiler.results$source =="GO:BP",]$term_name
 pathways.up <- gprofiler.results.up[gprofiler.results.up$source =="GO:BP",]$term_name
 pathways.down <- gprofiler.results.down[gprofiler.results.down$source =="GO:BP",]$term_name
-#WNT
-wnt <- pathways[grep("Wnt|wnt", pathways)]
-wnt.up <-pathways.up[grep("Wnt|wnt", pathways.up)]
-wnt.down <- pathways.down[grep("Wnt|wnt", pathways.down)]
 
+# #Neuronal
+# gprofiler.results.up.neur <- gprofiler.results.up$term_name[grep("nerv|neur", gprofiler.results.up$term_name)]
+# gprofiler.results.down.neur <- gprofiler.results.down$term_name[grep("nerv|neur", gprofiler.results.down$term_name)]
 
-#SCRAP
+pathways.up.neur <- pathways.up[grep("nerv|neur", pathways.up)]
+pathways.down.neur <- pathways.down[grep("nerv|neur", pathways.down
+                                         )]
+#Wnt GO:BP only
+wnt.BP <- pathways[grep("Wnt|wnt", pathways)]
+wnt.BP.up <-pathways.up[grep("Wnt|wnt", pathways.up)]
+wnt.BP.down <- pathways.down[grep("Wnt|wnt", pathways.down)]
+
 cols <- colnames(gprofiler.results$result)
 sources <-unique(gprofiler.results$source)
 #head(gprofiler.results$result$term_name)
 gprofiler.results.pathways <- gprofiler.results[gprofiler.results$source =="GO:BP",]
+gprofiler.results.kegg <- gprofiler.results[gprofiler.results$source =="KEGG",]
+gprofiler.results.reactome <- gprofiler.results[gprofiler.results$source =="REAC",]
+
+```
+
+# Threshold over-representation analysis
+
+Which method did you choose and why?\
+What annotation data did you use and why? What version of the annotation are you using?\
+How many genesets were returned with what thresholds?\
+Run the analysis using the up-regulated set of genes, and the down-regulated set of genes separately. How do these results compare to using the whole list?\
+Present your results with the use of tables and screenshots. All figures should have appropriate figure legends.
+If using figures create a figures directory in your repo and make sure all references to the figures are relative in your Rmarkdown notebook.\
+
+## Method and annotation data
+
+I used gprofiler, using the "gprofiler2" R package. I used this meta-database because it has a corresponding R package to fetch data, and we have gained familiarity with it in class. It contains the "GO:BP" dataset (Biological Process), which is the data source which I found most useful for understanding the effect of SAHA on the cell's biology. It returns the most results related to biological function/pathways. I used the p-value of 0.05 as the threshold for gene sets. \
+
+## Upregulated versus downregulated
+
+
+
+# Interpretation
+
+## Do the over-representation results support conclusions or mechanism discussed in the original paper?
+
+In the original [@HDAC_2017] paper, they showed that SAHA reversed expression of EP300 target genes in human aortic endothelial cells obtained from a diabetic individual (dHAECs). They selected candidate genes VCAN, CD58, CD200, SIGIRR, CCL2, and ICAM2 which are upregulated in dHAECs, and suppressed by EP300 knockdown [@HDAC_2017]. They showed that exposure of dHAECs to SAHA reduced the expression of these 6 upregulated genes, concluding that SAHA reverses the upregulation of pro-inflammatory genes in dHAECs[@HDAC_2017].\
+In my investigation of the same data, I also looked at these 6 genes, and showed that their expression is significantly decreased in dHAECs treated with SAHA (Figure ZZ), which is consistent with the results obtained by the paper.\
+
+## Can you find evidence, i.e. publications, to support some of the results that you see. How does this evidence support your results.
+
+I investigated the effect of SAHA on the Wnt signalling pathway due to a study which shows attenuation of wnt signalling upon treatment of colorectal carinoma cells with SAHA [@Gtze2014HistoneDI]. In the [@Gtze2014HistoneDI] paper, they show that SAHA attenuates proliferation and induces apoptosis in Wnt-activated colorectal carcinoma cell lines.In the [@WNT_UP] paper, they show that expression of most of the Wnt-related genes they were investigating were highly increased following treatment with HDAC inhibitors.\
+
+The gene set counts for Wnt terms are total(8), upregulated(7) and downregulated(0). We can see that when including only upregulated genes, we get 7 gene sets, whereas we get no gene sets are returned when only looking at downregulated genes.\
+
+Interestingly, two of the Wnt-related "upregulated" gene sets are termed "negative regulation of canonical Wnt signaling pathway", and  "negative regulation of Wnt signaling pathway". It is possible that in diabetic endothelial cells, upregulation of certain genes negatively regulates the Wnt signalling pathway.\
+
+Additionally, I looked at the 2 highest and lowest DE hits WRT logFC. First I looked at the 2 hits whose expression are most increased, CACNA1G and TPPP. Expression of CACNA1G was highly increased upon treatment of neural induced human adipose tissue-derived mesenchymal stem cells (NI-hADSCs) with HDAC inhibitor[@CACNA1G]\
+
+Next, I looked at the 2 hits whose expression are most reduced, MCM10 and TRIM22. HDAC inhibitor 4-PBA causes reduced expression of MCM10 in Saos2 cells [@MCM10]. TRIM22, when treated with HDAC inhibitor butyrate in A549 lung epithelial cells, has reduced expression[@TRIM22].\
+
+
+
+# References
+
+
+```{r, message=FALSE, echo=FALSE}
+#SCRAP
 # WNT
-Wnt <-gprofiler.results[grep("Wnt|wnt", gprofiler.results$term_name),]
-wnt <- gprofiler.results[grep("wnt", gprofiler.results$term_name),]
-small.terms <- gprofiler.results[gprofiler.results$term_size < 200,]
-wnt <- grep("Wnt", small.terms$term_name)
+# Wnt <-gprofiler.results[grep("Wnt|wnt", gprofiler.results$term_name),]
+# small.terms <- gprofiler.results[gprofiler.results$term_size < 200,]
+# wnt <- grep("Wnt", small.terms$term_name)
 
-
+#SCRAP
 # ANALYSIS OF EXPRESSION OF WNT TARGET GENES
 # wnt.targets <- c("MYC", "CCDN1", "VEGF", "MMP7", "LEF1", "TCF7L2")
 # topfit[topfit$hgnc_symbol %in% wnt.targets,]
@@ -324,7 +394,7 @@ wnt <- grep("Wnt", small.terms$term_name)
 #ORDER BY DECREASING P-VALUE
 #head(sign.hits)
 # SORT BY DECREASING EXPRESSION VALUE
-sign.hits <- sign.hits[order(sign.hits.pval$logFC, decreasing = TRUE),]
+#sign.hits <- sign.hits[order(sign.hits.pval$logFC, decreasing = TRUE),]
 
 # testing <- 0
 # if (testing){
@@ -352,7 +422,4 @@ sign.hits <- sign.hits[order(sign.hits.pval$logFC, decreasing = TRUE),]
 # # write(output_hits.pval$hgnc_symbol[which(output_hits.pval.down$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
 ```
 
-# References
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4670218/ # shows CPA4 upregulated upon HDAC treatment
-https://www.ncbi.nlm.nih.gov/pubmed/25050608 # shows HDAC inhibitors attenuate Wnt signalling pathway (this is found in gene set bonferroni.0.005.gene_hits.txt, BH.5e-06.gene_hits.txt)
 
