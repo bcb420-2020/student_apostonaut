@@ -1,5 +1,5 @@
 ---
-title: "Assignment 2: Expression analysis for SAHA treatment of diabetic endothelial cells"
+title: "Assignment 2: Differential expression analysis and investigation of biological effects of SAHA treatment of diabetic human aortic endothelial cells"
 output: 
   html_document:
     toc: true
@@ -93,10 +93,10 @@ rownames(diabetic.SAHA.DMSO.filtered) <- diabetic.SAHA.DMSO.filtered$Geneid
 
 
 
-```{r, echo=FALSE, message=FALSE}
+```{r map_ensg_to_hgnc, echo=FALSE, message=FALSE}
 #MAP ENSG TO HGNC SYMBOLS
 #get mart object from useast mirror (this mirror was working at the time of running)
-ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", mirror = "useast")
+ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", mirror = "uswest")#useast
 
 conversion_stash <- "SAHA_id_conversion.rds"
 if(file.exists(conversion_stash)){
@@ -133,7 +133,7 @@ The dataset is from [GEO GSE77108](https://www.ncbi.nlm.nih.gov/geo/query/acc.cg
 Normalization has already been done by the authors using the HPRT1 housekeeping gene[@HDAC_2017]. However, I have gone ahead and normalized the data again anyway using TMM:
 
 ## TMM normalization
-```{r}
+```{r TMM-normalization}
 #APPLYING TMM NORMALIZATION TO THE DATASET
 filtered_data_matrix <- as.matrix(diabetic.SAHA.DMSO.filtered[,2:ncol(diabetic.SAHA.DMSO)])
 rownames(filtered_data_matrix) <- rownames(diabetic.SAHA.DMSO.filtered)
@@ -160,17 +160,7 @@ The author's normalization is evident from the fact that there is only a very mi
 
 # Differential Gene Expression 
 
-
-**MAKE MDS PLOT TO SEE THE DISTANCE BETWEEN THE SAMPLES**  
-DMSO and SAHA treated diabetic cells seem to cluster together for the mostpart, with the exception of D-SAHA-2 along dimension 2. 
-```{r}
-
-# plotMDS(d, labels=rownames(samples),
-#   col = c("darkgreen","blue")[factor(samples$treatment)])
-```
-
-
-```{r}
+```{r create-DE-data-matrix}
 #CREATE DATA MATRIX
 
 model_design <- model.matrix(~ samples$treatment)
@@ -195,10 +185,12 @@ colnames(topfit)[1] <- "hgnc_symbol"
 
 ```
 
-# Plot of differentially expressed genes
 
-```{r}
-plot(topfit$AveExpr,topfit$logFC)
+## Plot of differentially expressed genes
+
+```{r DE-plot}
+title <- "Figure 1: DE genes between DMSO and HDAC treated dHAECs."
+plot(topfit$AveExpr,topfit$logFC, main=title, xlab= "Average expression", ylab= "log fold-change")
 pval <- 0.05
 # create up and down indices using pval cutoff and logFC
 down.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC < 0))
@@ -209,8 +201,8 @@ points(topfit$AveExpr[down.index], topfit$logFC[down.index], col = "red")
 #diabetic inflammatory genes investigated in paper
 D.inflamm.genes <- c("VCAN", "CD58", "CD200",  "SIGIRR", "CCL2", "ICAM2")
 D.inflamm.index <- which(topfit$hgnc_symbol %in% D.inflamm.genes )
-points(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], col = "steelblue1")
-text(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], labels=D.inflamm.genes, cex= 0.7, pos=2)
+points(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], col = "blue")
+text(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], labels=D.inflamm.genes, cex= 0.7, pos=2, col = "blue")
 
 num.genes <- 2
 # Highest logFC genes
@@ -223,40 +215,51 @@ top.down.genes <- head(topfit[order(topfit$logFC, decreasing = FALSE),], num.gen
 top.down.genes.idx <- which(topfit$hgnc_symbol %in% top.down.genes )
 labels.down <- topfit$hgnc_symbol[top.down.genes.idx]
 text(topfit$AveExpr[top.down.genes.idx], topfit$logFC[top.down.genes.idx], labels=labels.down, cex= 0.7, pos=2)
+# LEGEND
+legend(10, 7,legend=c("Upregulated", "Downregulated", "Diabetic genes"),col=c("green", "red" ,"blue"), pch=1, cex=0.8)
 
 ```
 
-
+## Counts of DE genes
+I used a threshold of 0.05 cutoff for the adjusted p-value. My DE results returened a total of 6600/13175 genes deemed differentially expressed. Of these, 3291 were significantly upregulated and 3309 significantly downregulated. I include labels for diabetic genes, as well as the top 2 upregulated and downregulated genes.
 
 
 # Clustering of top hits using heatmap
 The heatmap shows that DMSO and SAHA treated are clustering separately.
 
-```{r}
+```{r heatmap}
 #Make HEATMAP ==> TAKES LONG TIME, ONLY PRINT HEATMAP AT VERY END
 # get significant indices
 significant.index <- which((topfit$adj.P.Val < pval))
 heatmap_matrix <- final.df[significant.index, 2:ncol(final.df)]
-# heatmap_matrix <- head(heatmap_matrix, 1000)
+heatmap_matrix <- head(heatmap_matrix, 10)
 
 heatmap_matrix <- t(scale(t(heatmap_matrix)))
 heatmap_col = colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("blue", "white", "red"))
 
 current_heatmap <- Heatmap(as.matrix(heatmap_matrix),
+                               column_title = "Figure 2: Clustering for top hits between SAHA and DMSO treated dHAECs",                              
                                show_row_dend = TRUE,
                                show_column_dend = TRUE,
                                col=heatmap_col,
                                show_column_names = TRUE,
                                show_row_names = FALSE,
                                show_heatmap_legend = TRUE
-                               )
-#current_heatmap
+                               , 
+
+heatmap_legend_param = list(
+        title = "Legend", at = c(-2, 0, 2), labels = c("min", "zero", "max")
+    )
+
+)
+
+current_heatmap
 
 ```
 
 
 # Investigate data (using top hits)
-```{r}
+```{r gprofiler-queries}
 library("gprofiler2") # https://biit.cs.ut.ee/gprofiler/page/r-new
 pval <- 0.05
 
@@ -290,6 +293,7 @@ gprofiler.results.up <- gprofiler.results.up$result
 #DOWNREGULATED
 down.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC < 0))
 sign.genes.down <- topfit[down.index,]$hgnc_symbol
+
 #QUERY GPROFILER
 gprofiler.stash <- "gprofiler.DOWNREGULATED.results.rds"
 if(file.exists(gprofiler.stash)){
@@ -300,37 +304,52 @@ if(file.exists(gprofiler.stash)){
 }
 gprofiler.results.down <- gprofiler.results.down$result
 
-#WNT
+#WNT term counts for unfiltered results
 wnt <- gprofiler.results[grep("Wnt|wnt", gprofiler.results$term_name),]
 wnt.up <- gprofiler.results.up[grep("Wnt|wnt", gprofiler.results.up$term_name),]
 wnt.down <- gprofiler.results.down[grep("Wnt|wnt", gprofiler.results.down$term_name),]
-#BP
-pathways <- gprofiler.results[gprofiler.results$source =="GO:BP",]$term_name
-pathways.up <- gprofiler.results.up[gprofiler.results.up$source =="GO:BP",]$term_name
-pathways.down <- gprofiler.results.down[gprofiler.results.down$source =="GO:BP",]$term_name
-
-# #Neuronal
-# gprofiler.results.up.neur <- gprofiler.results.up$term_name[grep("nerv|neur", gprofiler.results.up$term_name)]
-# gprofiler.results.down.neur <- gprofiler.results.down$term_name[grep("nerv|neur", gprofiler.results.down$term_name)]
-
-pathways.up.neur <- pathways.up[grep("nerv|neur", pathways.up)]
-pathways.down.neur <- pathways.down[grep("nerv|neur", pathways.down
-                                         )]
-#Wnt GO:BP only
-wnt.BP <- pathways[grep("Wnt|wnt", pathways)]
-wnt.BP.up <-pathways.up[grep("Wnt|wnt", pathways.up)]
-wnt.BP.down <- pathways.down[grep("Wnt|wnt", pathways.down)]
-
-cols <- colnames(gprofiler.results)
-sources <-unique(gprofiler.results$source)
-gprofiler.results.pathways <- gprofiler.results[gprofiler.results$source =="GO:BP",]
-gprofiler.results.kegg <- gprofiler.results[gprofiler.results$source =="KEGG",]
-gprofiler.results.reactome <- gprofiler.results[gprofiler.results$source =="REAC",]
 
 ```
 
+# Interpretation of top DE gene hits
 
-```{r, message=FALSE, echo=FALSE}
+## My results support conclusions of original paper
+
+In the original [@HDAC_2017] paper, they showed that SAHA reversed expression of EP300 target genes in dHAECs. They selected candidate genes VCAN, CD58, CD200, SIGIRR, CCL2, and ICAM2 which are upregulated in dHAECs, and suppressed by EP300 knockdown [@HDAC_2017]. They showed that exposure of dHAECs to SAHA reduced the expression of these 6 upregulated genes, concluding that SAHA reverses the upregulation of pro-inflammatory genes in dHAECs [@HDAC_2017].\
+
+In my investigation of the same data, I also looked at these 6 genes, and showed that their expression is significantly decreased in dHAECs treated with SAHA (Figure 1), which is consistent with the results obtained by the paper.\
+
+## Search of literature for 4 top gene hits
+
+To gain confidence about my top hits for upregulated and downregulated genes, I looked at the 2 highest and lowest with respect to logFC. First I looked at the 2 hits whose expression are most increased, CACNA1G and TPPP.\
+
+Expression of CACNA1G was highly increased upon treatment of neural induced human adipose tissue-derived mesenchymal stem cells (NI-hADSCs) with HDAC inhibitor [@CACNA1G]. Binding of the TPPP/p25 complex to HDAC6 is know to inhibit HDAC6 deacetylating function in HeLa cells [@HDAC6_neuro]. Since An increase in both CACNA1G and TPPP are seen in our SAHA-treated sample, this is consistent with HDAC inhibition.\ 
+
+Next, I looked at the 2 hits whose expression are most reduced, MCM10 and TRIM22. HDAC inhibitor 4-PBA causes reduced expression of MCM10 in Saos2 cells [@MCM10]. TRIM22, when treated with HDAC inhibitor butyrate in A549 lung epithelial cells, has reduced expression [@TRIM22]. Thus, the 2 top reduced hits are consistent with the literature. \
+
+Overall, the most upregulated and downregulated genes are consistent with the literature
+
+# Interpretation of gprofiler gene set results
+
+## Method and annotation data
+
+<!-- Which method did you choose and why?\ -->
+<!-- What annotation data did you use and why? What version of the annotation are you using?\ -->
+
+I used gprofiler, using the "gprofiler2" R package. I used this meta-database because it has a corresponding R package to fetch data, and we have gained familiarity with it in class. It contains the "GO:BP" dataset (Biological Process), which is the data source which I found most useful for understanding the effect of SAHA on the cell's biology.  It returns the most results related to biological function/pathways. I also included all other data sources provided by gprofiler.\
+
+The version of the annotation data are those which gprofiler uses on the date of compilation of this notebook, since the "gprofiler2" R package uses the same annotation data as the g:profiler web application\
+
+I used the p-value of 0.05 as the threshold for gene sets, and subsequently filtered for smaller term size and more stringent p-value. \
+
+<!-- How many genesets were returned with what thresholds?\ -->
+The number of genesets for total, upregulated and downregulated gene queries can be seen in Table 1. The column "Total.Counts" corresponds to all terms returned with p_value=0.05, and "Filtered.Counts" correspond to p_value=0.00005, and term.size=500 (Table 1).\
+
+I used the "Filtered.Counts" results to look at higher confidence and more meaningful gene sets. I will refer to the **unfiltered** (p_value=0.05) and **filtered** (p_value=0.00005, and term.size=500) gprofiler results  from this point onwards.\
+
+## Gprofiler result tables
+
+```{r gprofiler-result-tables, message=FALSE, echo=FALSE}
 pval.filter <- 0.00005
 term.size <- 500
 # filter pval and term size
@@ -339,19 +358,28 @@ filter.gprofiler.results <- function(results, pval.filter, term.size){
   small.terms <- results[results$term_size < term.size,]
   return(small.terms)
 }
+#FILTER
+#total
 gprofiler.filtered.total <- filter.gprofiler.results(gprofiler.results, pval.filter, term.size)
+gprofiler.filtered.total <- gprofiler.filtered.total[order(gprofiler.filtered.total$p_value, decreasing = FALSE),]
+#up
 gprofiler.filtered.up <- filter.gprofiler.results(gprofiler.results.up, pval.filter, term.size)
+gprofiler.filtered.up <- gprofiler.filtered.up[order(gprofiler.filtered.up$p_value, decreasing = FALSE),]
+#down
 gprofiler.filtered.down <- filter.gprofiler.results(gprofiler.results.down, pval.filter, term.size)
+gprofiler.filtered.down <- gprofiler.filtered.down[order(gprofiler.filtered.down$p_value, decreasing = FALSE),]
 
 #TABLE FOR COUNTS
-title <- "Table 1: counts of gprofiler results"
+title <- "Table 1: Gene set counts for gprofiler results"
 names <- c("Total", "Upregulated", "Downregulated")
 counts <- c(nrow(gprofiler.results), nrow(gprofiler.results.up),nrow(gprofiler.results.down))
 counts.filtered <- c(nrow(gprofiler.filtered.total), nrow(gprofiler.filtered.up),nrow(gprofiler.filtered.down))
-df.counts <- data.frame(names, counts,  counts.filtered, stringsAsFactors = FALSE)#
-kable(df.counts, caption = title)
+df.counts <- data.frame(Query=names, Total.Counts=counts,  Filtered.Counts=counts.filtered, stringsAsFactors = FALSE)#
+#kable(df.counts, caption = title)
+df.counts  %>%
+  kable(caption = title) %>%
+  kable_styling()
 ```
-
 
 ```{r, message=FALSE, echo=FALSE}
 # Table of top terms from filtered results
@@ -365,68 +393,45 @@ df.terms <- data.frame(Total=gprofiler.filtered.topterms , Upregulated=gprofiler
 df.terms  %>%
   kable(caption = title) %>%
   kable_styling()
-#kable(df.terms, caption = title)
 ```
-
-
-# Interpretation of top DE gene hits
-
-## My results support conclusions of original paper
-
-In the original [@HDAC_2017] paper, they showed that SAHA reversed expression of EP300 target genes in dHAECs. They selected candidate genes VCAN, CD58, CD200, SIGIRR, CCL2, and ICAM2 which are upregulated in dHAECs, and suppressed by EP300 knockdown [@HDAC_2017]. They showed that exposure of dHAECs to SAHA reduced the expression of these 6 upregulated genes, concluding that SAHA reverses the upregulation of pro-inflammatory genes in dHAECs[@HDAC_2017].\
-In my investigation of the same data, I also looked at these 6 genes, and showed that their expression is significantly decreased in dHAECs treated with SAHA (Figure ZZ), which is consistent with the results obtained by the paper.\
-
-## Search of literature for 4 top gene hits
-
-To gain confidence about my top hits for upregulated and downregulated genes, I looked at the 2 highest and lowest with respect to logFC. First I looked at the 2 hits whose expression are most increased, CACNA1G and TPPP. Expression of CACNA1G was highly increased upon treatment of neural induced human adipose tissue-derived mesenchymal stem cells (NI-hADSCs) with HDAC inhibitor[@CACNA1G]. Binding of the TPPP/p25 complex to HDAC6 is know to inhibit its deacetylating function in HeLa cells[@HDAC6_neuro]. Since An increase in both CACNA1G and TPPP are seen in our SAHA-treated sample, this is consistent with HDAC inhibition.\ 
-
-Next, I looked at the 2 hits whose expression are most reduced, MCM10 and TRIM22. HDAC inhibitor 4-PBA causes reduced expression of MCM10 in Saos2 cells [@MCM10]. TRIM22, when treated with HDAC inhibitor butyrate in A549 lung epithelial cells, has reduced expression[@TRIM22]. Thus, the 2 top reduced hits are consistent with the literature. \
-
-Overall, the most upregulated and downregulated genes are consistent with the literature
-
-## Method and annotation data
-
-<!-- Which method did you choose and why?\ -->
-<!-- What annotation data did you use and why? What version of the annotation are you using?\ -->
-
-I used gprofiler, using the "gprofiler2" R package. I used this meta-database because it has a corresponding R package to fetch data, and we have gained familiarity with it in class. It contains the "GO:BP" dataset (Biological Process), which is the data source which I found most useful for understanding the effect of SAHA on the cell's biology. It returns the most results related to biological function/pathways. I used the p-value of 0.05 as the threshold for gene sets, and subsequently filtered for smaller term size and more stringent p-value. \
-
-<!-- How many genesets were returned with what thresholds?\ -->
-The number of genesets for total, upregulated and downregulated gene queries can be seen in Table 1. The column "counts" corresponds to all terms returned with p_value=0.05, and "counts.filtered" correspond to p_value=0.00005, and term.size=500. I used the counts.filtered results to look at higher confidence and more meaningful gene sets. I will refer to the "unfiltered"(p_value=0.05) and "filtered" gprofiler results (p_value=0.00005, and term.size=500) from this point onwards.\
-
 
 
 <!-- Present your results with the use of tables and screenshots. All figures should have appropriate figure legends. -->
 <!-- If using figures create a figures directory in your repo and make sure all references to the figures are relative in your Rmarkdown notebook.\ -->
 
-# Interpretation of gprofiler gene set results
-
 ## Comparison of filtered gprofiler results for total, upregulated and downregulated genes
 <!-- Run the analysis using the up-regulated set of genes, and the down-regulated set of genes separately. How do these results compare to using the whole list?\ -->
 I created a table with the top 15 terms for the filtered gprofiler results specified above to look at the most significant terms in total, upregulated and downregulated queries (Table 2). Some interesting patterns can be seen.\
-Total: When looking at the "total" terms, they seem to relate mostly to cell cycle, autophagy, DNA replication and catabolic processes. "signal transduction by p53 class mediator" is also a top term.\
-Upregulated: The top downregulated terms correspond almost exclusively to DNA replication, cell cycle checkpoint, and chromosome segregation gene sets. This seems to have a lot in common with "total" query.
-Downregulated: The upregulated terms include vastly different terms than the "total" and "downregulated" filtered queries. It includes a wider variety of functions, including protein localization, lytic vacuole/lysosome, Axonogenesis, wnt signaling, (Ras) GTPase binding, and synapse-related terms.\
 
+**Total:** When looking at the "total" terms, they seem to relate mostly to cell cycle, DNA replication and catabolic processes. Retinoblastoma Gene in Cancer is the top hit.\
 
+**Downregulated**: The top downregulated terms correspond almost exclusively to DNA replication, cell cycle checkpoint, and chromosome segregation gene sets. This seems to have a lot in common with "total" query.\
+
+**Upregulated:** The upregulated terms include vastly different terms than the "total" and "downregulated" filtered queries. It includes a wider variety of functions, including protein localization, lytic vacuole/lysosome, Axonogenesis, wnt signaling, (Ras) GTPase binding, and synapse-related terms.\
+
+In the following 2 sections, I discuss these results. The original paper [@HDAC_2017] does not discuss these, since they were specifically looking at pro-inflammatory genes in dHAECs. 
 <!-- Can you find evidence, i.e. publications, to support some of the results that you see. How does this evidence support your results. -->
 
-## Wnt pathway, Ras and neuronal development effects are seen, not discussed by original paper
+## Retinoblastoma, cell cycle effects
 
-I investigated the effect of SAHA on the Wnt signalling pathway due to a study which shows attenuation of wnt signalling upon treatment of colorectal carinoma cells with SAHA [@Gtze2014HistoneDI]. In the [@Gtze2014HistoneDI] paper, they show that SAHA attenuates proliferation and induces apoptosis in Wnt-activated colorectal carcinoma cell lines. In the [@WNT_UP] paper, they show that expression of most of the Wnt-related genes they were investigating were highly increased following treatment with HDAC inhibitors. \
+HDAC inhibitors are known to have effects on retinoblastoma cell lines, inducing growth arrest and apoptosis. [@RB_HDAC] Additionally, HDAC inhibitors are known to interfere with progression of the cell cycle (G1 arrest) in human cancers in general [@CELLCYCLE_HDAC]. This is consistent with the numerous cell-cycle related hits in both the "Total" and "Downregulated" top gene sets (Table 2). Additionally, the original [@HDAC_2017] paper found that the cell cycle was more likely to be suppressed in dHAECs based on integration of RNA-seq and ChIP-seq data. My top 15 hits also show this pattern (Table 2, columns 1 and 3).
+
+## Wnt pathway, Ras and neuronal development effects are seen
+ 
+I investigated the effect of HDAC inhibitors on the Wnt signalling pathway. In the [@Gtze2014HistoneDI] paper, they show that SAHA attenuates proliferation and induces apoptosis in Wnt-activated colorectal carcinoma cell lines. In the [@WNT_UP] paper, they show that expression of most of the Wnt-related genes they were investigating were highly increased following treatment with HDAC inhibitors. \
 
 The unfiltered gprofiler results for Wnt terms have counts of total(8), upregulated(7) and downregulated(0) for the unfiltered gprofiler results. When looking at top 15 filtered results, we see Wnt signaling come up only in the upregulated query (Table 2) \
 
 Interestingly, two of the Wnt-related "upregulated" gene sets in unfiltered results are termed "negative regulation of canonical Wnt signaling pathway", and  "negative regulation of Wnt signaling pathway". It is possible that in diabetic endothelial cells, upregulation of certain genes negatively regulates the Wnt signalling pathway. \
 
-In the [@WNT_UP] paper, they find a link between HDAC inhibition and neuronal differentiation via the Wnt signalling pathway. In the upregulated filtered gprofiler results, we see terms related to Wnt signalling as well as neuronal differentiation (Table 2, column 2), which is consistent with these results.\
+In the [@WNT_UP] paper, they find a link between HDAC inhibition and neuronal differentiation via the Wnt signalling pathway. In the upregulated filtered gprofiler results, we see terms related to Wnt signalling as well as neuronal differentiation (axonogenesis, distal axon) (Table 2, column 2), which is consistent with these results.\
 
-We also see "(RAS) GTPase" terms in the filtered upregulated gene sets. In the [@RAS_HDAC] study, they show that the HDAC inhibitor FK228 suppresses the Ras-MAPK signalling pathway, which supports this finding.\ 
+We also see "Ras/Rab GTPase" terms in the filtered upregulated gene sets. In the [@RAS_HDAC] study, they show that the HDAC inhibitor FK228 suppresses the Ras-MAPK signalling pathway, which supports this finding.\ 
 
 Overall, these results are consistent with what is found about Wnt signalling, neuronal differentiation, and Ras signalling in relation to HDAC inhibitors in the literature[@Gtze2014HistoneDI], [@WNT_UP].  
 
-
-
+# Summary
+These results suggest that the authors of the [@HDAC_2017] paper selectively looked at pro-inflammatory genes in diabetes, since many biological processes are affected by SAHA which are unrelated to diabetes. The literature supports similar pathways and processes being affected by SAHA in various cancers. The [@HDAC_2017]  proposes that their study of SAHA's effects can be used as a prediction for novel therapies for existing disease. 
 
 
 # References
@@ -481,6 +486,25 @@ Overall, these results are consistent with what is found about Wnt signalling, n
 # length(which(output_hits.pval.up$adj.P.Val < pval))
 # up.down="down."
 # # write(output_hits.pval$hgnc_symbol[which(output_hits.pval.down$adj.P.Val < pval)], file = paste0("gene_hits","/",adjust.method,".",pval,".",up.down,"gene_hits.txt") )
+
+
+#BP
+# pathways <- gprofiler.results[gprofiler.results$source =="GO:BP",]$term_name
+# pathways.up <- gprofiler.results.up[gprofiler.results.up$source =="GO:BP",]$term_name
+# pathways.down <- gprofiler.results.down[gprofiler.results.down$source =="GO:BP",]$term_name
+
+# gprofiler.results.down$term_name[grep("Wnt|wnt", gprofiler.results.up$term_name)]$term_name
+# #Wnt GO:BP only
+# wnt.BP <- pathways[grep("Wnt|wnt", pathways)]
+# wnt.BP.up <-pathways.up[grep("Wnt|wnt", pathways.up)]
+# wnt.BP.down <- pathways.down[grep("Wnt|wnt", pathways.down)]
+# 
+# cols <- colnames(gprofiler.results)
+# sources <-unique(gprofiler.results$source)
+# gprofiler.results.pathways <- gprofiler.results[gprofiler.results$source =="GO:BP",]
+# gprofiler.results.kegg <- gprofiler.results[gprofiler.results$source =="KEGG",]
+# gprofiler.results.reactome <- gprofiler.results[gprofiler.results$source =="REAC",]
+
 ```
 
 
