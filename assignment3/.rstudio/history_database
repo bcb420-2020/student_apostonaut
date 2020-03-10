@@ -1,0 +1,3 @@
+1583279342200:getwd()
+1583279439916:"rmarkdown::render('/home/username/A2_michaelapostolides.Rmd',output_file='/home/username/A2_michaelapostolides.html')"
+1583279495420:rmarkdown::render('/home/username/A2_michaelapostolides.Rmd', output_format = 'html_document')
