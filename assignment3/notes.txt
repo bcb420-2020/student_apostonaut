@@ -1,1 +1,11 @@
 #notes for A3
+MARCH 22 2020
+-ran GSEA on ranked gene list, with p-value 0.05. Used file from bader lab website that was recommended in class:
+http://download.baderlab.org/EM_Genesets/February_01_2020/Human/symbol/Human_GOBP_AllPathways_no_GO_iea_February_01_2020_symbol.gmt
+-saw interesting top hit for upregulated genes: "	NEGATIVE REGULATION OF CANONICAL WNT SIGNALING PATHWAY%GOBP%GO:0090090"
+-in A2, this gene set came up as significant, but was not at the very top. It is interesting now that "non-significant" genes (i.e. genes with less upregulated expression ) are factoring in and we are seeing this gene set as being the most significant.
+-this gene set is a good candidate for investigation into a pathway in more detail
+
+
+March 24 2020
+-I have downloaded the Enrichment Map app for Cytoscape and generated an enrichment map using the GSEA results.  
