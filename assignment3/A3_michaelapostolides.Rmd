@@ -282,6 +282,7 @@ write.table(rank.df, file=paste0(getwd(), "/", "sign_hits.rnk"), quote=FALSE, se
 ```{sh}
 #:%s/Details ...\t//g
 #:%s/GS DETAILS\t//g
+#%s/\t\t/\t/g
 # Need to remove "GS DETAILS" column from files gsea_report_for_na_neg_1584894635307.xls and gsea_report_for_na_pos_1584894635307.xls
 
 ```
@@ -290,10 +291,12 @@ write.table(rank.df, file=paste0(getwd(), "/", "sign_hits.rnk"), quote=FALSE, se
 # GSEA RESULTS
 
 ```{r}
-#neg.file <- paste0(getwd(),"/GSEA_outdir/A3_GSEA.GseaPreranked.1584894635307/gsea_report_for_na_neg_1584894635307.xls")
-neg.file <- "tmp.xls"
-read.table(file=neg.file, header = TRUE, stringsAsFactors = F, sep="\t")
-
+neg.file <- paste0(getwd(),"/GSEA_outdir/A3_GSEA.GseaPreranked.1584894635307/gsea_report_for_na_neg_1584894635307.xls")
+#neg.file <- "gsea_report_for_na_neg_1584894635307.xls"
+#pos.file <- "gsea_report_for_na_pos_1584894635307.xls"
+neg.file <- read.table(file=neg.file, header = F, stringsAsFactors = F, sep="\t", quote = "\"")
+pos.file <- paste0(getwd(),"/GSEA_outdir/A3_GSEA.GseaPreranked.1584894635307/gsea_report_for_na_pos_1584894635307.xls")
+pos.file <- read.table(file=pos.file, header = F, stringsAsFactors = F, sep="\t", quote = "\"")
 ```
 
 
