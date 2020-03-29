@@ -264,21 +264,50 @@ current_heatmap
 
 # Investigate data (using top hits)
 ```{r gprofiler-queries}
-pval <- 0.05
+# #ALL
+# sign.hits <- topfit[which((topfit$adj.P.Val < pval)),]
+# #SORT BY DECREASING log_FC
+# sign.hits <- sign.hits[order(sign.hits$adj.P, decreasing = TRUE),]
 
-#ALL
-sign.hits <- topfit[which((topfit$adj.P.Val < pval)),]
-#SORT BY DECREASING log_FC
-sign.hits <- sign.hits[order(sign.hits$adj.P, decreasing = TRUE),]
+# # GENERATE RANK FILE FOR PRERANKED GSEA
+# rank.df <- sign.hits[c("hgnc_symbol","logFC")]
+
+
+#compute ranks
+ranks <- -log(topfit$adj.P.Val, base=10)*sign(topfit$logFC)
+genes <- topfit$hgnc_symbol
+rnk.df <- data.frame(GeneName=genes, rank=ranks, stringsAsFactors = FALSE)
+#sort table by ranks
+rnk.df <- rnk.df[order(rnk.df$rank, decreasing = TRUE),]
+rows <- nrow(rnk.df)
 #REMOVE ROWS WITH NO HGNC SYMBOL
-sign.hits <- sign.hits[sign.hits$hgnc_symbol != "",]
-# GENERATE RANK FILE FOR PRERANKED GSEA
-rank.df <- sign.hits[c("hgnc_symbol","logFC")]
-write.table(rank.df, file=paste0(getwd(), "/", "sign_hits.rnk"), quote=FALSE, sep='\t', row.names=FALSE)
+rnk.df <- rnk.df[rnk.df$GeneName != "",]
+rows.no_hgnc <- as.character(rows - nrow(rnk.df))
+print(paste0("Number of entries without an hgnc symbol: ", rows.no_hgnc))
+write.table(rnk.df, file=paste0(getwd(), "/", "sign_hits.unthresholded.rnk"), quote=FALSE, sep='\t', row.names=FALSE)
 ```
 
-# Thresholded analysis using GSEA
+# Non-Thresholded analysis using GSEA
 
+I used GSEA (**citation for GSEA**) for non-thresholded analysis. I used the same geneset file which was used in the class homework:\ [[http://download.baderlab.org/EM_Genesets/February_01_2020/Human/symbol/Human_GOBP_AllPathways_no_GO_iea_February_01_2020_symbol.gmt]]\
+
+## Summary of enrichment results
+```{r}
+#file:///Users/andreeduquette/BCB420/student_apostonaut/assignment3/GSEA_outdir/A3_GSEA_UNTHRESHOLDD.GseaPreranked.1585427734453/gsea_report_for_na_pos_1585427734453.xls
+neg.file <- paste0(getwd(),"/GSEA_outdir/A3_GSEA_UNTHRESHOLDD.GseaPreranked.1585427734453/gsea_report_for_na_neg_1585427734453.xls")
+neg.file <- read.table(file=neg.file, header = T, stringsAsFactors = F, sep="\t", quote = "\"")
+pos.file <- paste0(getwd(),"/GSEA_outdir/A3_GSEA_UNTHRESHOLDD.GseaPreranked.1585427734453/gsea_report_for_na_pos_1585427734453.xls")
+pos.file <- read.table(file=pos.file, header = T, stringsAsFactors = F, sep="\t", quote = "\"")
+
+top.pos <- head(pos.file$NAME, 15)
+top.neg <- head(neg.file$NAME, 15)
+
+df.terms <- data.frame(Upregulated=top.pos, Downregulated=top.neg)
+title <- "Table: Comparison of top 15 GSEA upregulated and downregulated gene sets"
+df.terms  %>%
+  kable(caption = title) %>%
+  kable_styling()
+```
 ```{sh}
 #:%s/Details ...\t//g
 #:%s/GS DETAILS\t//g
@@ -287,17 +316,40 @@ write.table(rank.df, file=paste0(getwd(), "/", "sign_hits.rnk"), quote=FALSE, se
 
 ```
 
+I have included a table of the top 15 upregulated and downregulated terms of the GSEA results (Table 1). A summary of the contents for the top hits is as follows:\
+* Upregulated: the main themes include: "cognition/learning/memory", "Synaptic signalling", "ion transport/channels", "lipid/lipoprotein" (Table 1).
+* Downregulated: the main themes include: "E2F", "DNA replication", "ATR signaling/replication stress", "cell cycle checkpoints" (Table 1).
 
-# GSEA RESULTS
+<!-- How do these results compare to the results from the thresholded analysis in Assignment #2. Compare qualitatively. Is this a straight forward comparison? Why or why not? -->
+## Comparison of GSEA and g:profiler results
+Upregulated: protein localization, lytic vacuole/lysosome, Axonogenesis, wnt signaling, (Ras) GTPase binding, and synapse-related terms.
+Downregulated: DNA replication, cell cycle checkpoint, and chromosome segregation gene sets, retinoblastoma Gene in Cancer 
+
+* Upregulated comparison: the upregulated terms have only synapse-related terms in common. There are major differences in the top 15 hits
+* Downregulated comparison: the downregulated terms have "DNA replication" and "cell cycle checkpoint" terms in common. 
+Comparing the outputs directly using the tables provided is difficult. There are many keywords, and finding themes among terms is time-consuming to do manually.
+
+# Wnt
+
+I have chosen the Wnt pathway as a pathway to investigate in the GSEA non-thresholded results. Wnt-related gene sets are make up 11/<total> significant gene sets with p-value threshold of 0.01, including ranks #23 and #44. There is also literature support for modulation of the Wnt pathway by SAHA.  In the (Götze et al. 2014) paper, they show that SAHA attenuates proliferation and induces apoptosis in Wnt-activated colorectal carcinoma cell lines. In the (Sujeong Jang 2018b) paper, they show that expression of most of the Wnt-related genes they were investigating were highly increased following treatment with HDAC inhibitors.
+
+The Wnt pathway is a well-defined pathway with literature support for SAHA effects, so it makes a good candidate for more detailed investigation. 
 
 ```{r}
-neg.file <- paste0(getwd(),"/GSEA_outdir/A3_GSEA.GseaPreranked.1584894635307/gsea_report_for_na_neg_1584894635307.xls")
-#neg.file <- "gsea_report_for_na_neg_1584894635307.xls"
-#pos.file <- "gsea_report_for_na_pos_1584894635307.xls"
-neg.file <- read.table(file=neg.file, header = F, stringsAsFactors = F, sep="\t", quote = "\"")
-pos.file <- paste0(getwd(),"/GSEA_outdir/A3_GSEA.GseaPreranked.1584894635307/gsea_report_for_na_pos_1584894635307.xls")
-pos.file <- read.table(file=pos.file, header = F, stringsAsFactors = F, sep="\t", quote = "\"")
+pval <- 0.01
+pos.file.sign <- pos.file[pos.file$NOM.p.val < pval,]
+wnt.pos.sign <- pos.file.sign[grep("WNT", pos.file.sign$NAME),]
+#print(nrow(pos.file.sign) ,nrow(wnt.pos.sign))
+
+rho.gtp.ras <- pos.file.sign[grep("RHO|GTP|RAS", pos.file.sign$NAME),]
+
+neg.file.sign <- neg.file[neg.file$NOM.p.val < pval,]
+neg.file.sign[grep("DNA", neg.file.sign$NAME),]
 ```
+
+
+
+
 
 
 
