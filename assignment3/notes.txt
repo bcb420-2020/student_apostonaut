@@ -72,6 +72,9 @@ In assignment 2:
 Upregulated: protein localization, lytic vacuole/lysosome, Axonogenesis, wnt signaling, (Ras) GTPase binding, and synapse-related terms.
 Downregulated: DNA replication, cell cycle checkpoint, and chromosome segregation gene sets, retinoblastoma Gene in Cancer 
 
+HDAC expression:
+"HDIs bind to the zinc-containing catalytic domain of the histone deacetylase (HDACs) and they repress the deacetylase enzymatic activity. " (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6480157/)
+-interestingly, expression of HDACs in SAHA-treated dHAECs is increased for the mostpart:
 
 
 

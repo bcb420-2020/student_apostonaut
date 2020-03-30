@@ -4,7 +4,7 @@ output:
   html_document:
     toc: true
     toc_depth: 2
-bibliography: A2_michaelapostolides.bib
+bibliography: A3_michaelapostolides.bib
 ---
 
 **Name:** Michael Apostolides\
@@ -190,76 +190,15 @@ colnames(topfit)[1] <- "hgnc_symbol"
 ```
 
 
-## Plot of differentially expressed genes
 
-```{r DE-plot}
-title <- "Figure 1: DE genes between DMSO and HDAC treated dHAECs."
-plot(topfit$AveExpr,topfit$logFC, main=title, xlab= "Average expression", ylab= "log fold-change")
-pval <- 0.05
-# create up and down indices using pval cutoff and logFC
-down.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC < 0))
-up.index <- which((topfit$adj.P.Val < pval) & (topfit$logFC > 0))
-# colour points accordingly
-points(topfit$AveExpr[up.index], topfit$logFC[up.index], col = "green")
-points(topfit$AveExpr[down.index], topfit$logFC[down.index], col = "red")
+```{r}
+
 #diabetic inflammatory genes investigated in paper
 D.inflamm.genes <- c("VCAN", "CD58", "CD200",  "SIGIRR", "CCL2", "ICAM2")
-D.inflamm.index <- which(topfit$hgnc_symbol %in% D.inflamm.genes )
-points(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], col = "blue")
-text(topfit$AveExpr[D.inflamm.index], topfit$logFC[D.inflamm.index], labels=D.inflamm.genes, cex= 0.7, pos=2, col = "blue")
 
-num.genes <- 2
-# Highest logFC genes
-top.up.genes <- head(topfit[order(topfit$logFC, decreasing = TRUE),], num.genes)$hgnc_symbol
-top.up.genes.idx <- which(topfit$hgnc_symbol %in% top.up.genes )
-labels.up <- topfit$hgnc_symbol[top.up.genes.idx]
-text(topfit$AveExpr[top.up.genes.idx], topfit$logFC[top.up.genes.idx], labels=labels.up, cex= 0.7, pos=2)
-#Lowest logFC genes
-top.down.genes <- head(topfit[order(topfit$logFC, decreasing = FALSE),], num.genes)$hgnc_symbol
-top.down.genes.idx <- which(topfit$hgnc_symbol %in% top.down.genes )
-labels.down <- topfit$hgnc_symbol[top.down.genes.idx]
-text(topfit$AveExpr[top.down.genes.idx], topfit$logFC[top.down.genes.idx], labels=labels.down, cex= 0.7, pos=2)
-# LEGEND
-legend(10, 7,legend=c("Upregulated", "Downregulated", "Diabetic genes"),col=c("green", "red" ,"blue"), pch=1, cex=0.8)
 
 ```
 
-## Counts of DE genes
-I used a threshold of 0.05 cutoff for the adjusted p-value. My DE results returened a total of 6600/13175 genes deemed significantly differentially expressed. Of these, 3291 were significantly upregulated and 3309 significantly downregulated. I include labels for diabetic genes, as well as the top 2 upregulated and downregulated genes (Figure 1).
-
-
-# Clustering of top hits using heatmap
-The heatmap shows that DMSO and SAHA treated are clustering separately.
-
-```{r heatmap}
-#Make HEATMAP ==> TAKES LONG TIME, ONLY PRINT HEATMAP AT VERY END
-# get significant indices
-significant.index <- which((topfit$adj.P.Val < pval))
-heatmap_matrix <- final.df[significant.index, 2:ncol(final.df)]
-#heatmap_matrix <- head(heatmap_matrix, 10)
-
-heatmap_matrix <- t(scale(t(heatmap_matrix)))
-heatmap_col = colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("blue", "white", "red"))
-
-current_heatmap <- Heatmap(as.matrix(heatmap_matrix),
-                               column_title = "Figure 2: Clustering for top hits between SAHA and DMSO treated dHAECs",                              
-                               show_row_dend = TRUE,
-                               show_column_dend = TRUE,
-                               col=heatmap_col,
-                               show_column_names = TRUE,
-                               show_row_names = FALSE,
-                               show_heatmap_legend = TRUE
-                               , 
-
-heatmap_legend_param = list(
-        title = "Legend", at = c(-2, 0, 2), labels = c("min", "zero", "max")
-    )
-
-)
-
-current_heatmap
-
-```
 
 
 # Investigate data (using top hits)
@@ -285,6 +224,11 @@ rnk.df <- rnk.df[rnk.df$GeneName != "",]
 rows.no_hgnc <- as.character(rows - nrow(rnk.df))
 print(paste0("Number of entries without an hgnc symbol: ", rows.no_hgnc))
 write.table(rnk.df, file=paste0(getwd(), "/", "sign_hits.unthresholded.rnk"), quote=FALSE, sep='\t', row.names=FALSE)
+
+#write expression values file
+expression_values <- data.frame(topfit$hgnc_symbol, topfit$logFC)
+write.table(expression_values,  file=paste0(getwd(), "/", "expression_values.tsv"), sep='\t', quote=FALSE, row.names=FALSE )
+
 ```
 
 # Non-Thresholded analysis using GSEA
@@ -329,9 +273,13 @@ Downregulated: DNA replication, cell cycle checkpoint, and chromosome segregatio
 * Downregulated comparison: the downregulated terms have "DNA replication" and "cell cycle checkpoint" terms in common. 
 Comparing the outputs directly using the tables provided is difficult. There are many keywords, and finding themes among terms is time-consuming to do manually.
 
+# Network diagram and HDAC inhibitors
+
+<Network Diagram>
+
 # Wnt
 
-I have chosen the Wnt pathway as a pathway to investigate in the GSEA non-thresholded results. Wnt-related gene sets are make up 11/<total> significant gene sets with p-value threshold of 0.01, including ranks #23 and #44. There is also literature support for modulation of the Wnt pathway by SAHA.  In the (Götze et al. 2014) paper, they show that SAHA attenuates proliferation and induces apoptosis in Wnt-activated colorectal carcinoma cell lines. In the (Sujeong Jang 2018b) paper, they show that expression of most of the Wnt-related genes they were investigating were highly increased following treatment with HDAC inhibitors.
+I have chosen the Wnt pathway as a pathway to investigate in the GSEA non-thresholded results. Wnt-related gene sets are make up 11/296 significant gene sets with p-value threshold of 0.01, including ranks #23 and #44 in "na_pos" GSEA results. There are no Wnt-related terms in the "na_neg" downregulated sets, suggesting that Wnt-related effects are uniquely seen in SAHA-treated dHAECs. There is also literature support for modulation of the Wnt pathway by SAHA.  In the (Götze et al. 2014) paper, they show that SAHA attenuates proliferation and induces apoptosis in Wnt-activated colorectal carcinoma cell lines. In the (Sujeong Jang 2018b) paper, they show that expression of most of the Wnt-related genes they were investigating were highly increased following treatment with HDAC inhibitors.
 
 The Wnt pathway is a well-defined pathway with literature support for SAHA effects, so it makes a good candidate for more detailed investigation. 
 
@@ -339,19 +287,34 @@ The Wnt pathway is a well-defined pathway with literature support for SAHA effec
 pval <- 0.01
 pos.file.sign <- pos.file[pos.file$NOM.p.val < pval,]
 wnt.pos.sign <- pos.file.sign[grep("WNT", pos.file.sign$NAME),]
-#print(nrow(pos.file.sign) ,nrow(wnt.pos.sign))
+print(nrow(wnt.pos.sign))
 
-rho.gtp.ras <- pos.file.sign[grep("RHO|GTP|RAS", pos.file.sign$NAME),]
 
 neg.file.sign <- neg.file[neg.file$NOM.p.val < pval,]
-neg.file.sign[grep("DNA", neg.file.sign$NAME),]
+wnt.neg.sign <- neg.file.sign[grep("WNT", neg.file.sign$NAME),]
+
+leading.edge.genes.file <- paste0(getwd(), "/GSEA_outdir/A3_GSEA_UNTHRESHOLDD.GseaPreranked.1585427734453/NEGATIVE\ REGULATION\ OF\ CANONICAL\ WNT\ SIGNALING\ PATHWAY%GOBP%GO:0090090.xls")
+leading.edge.genes.file <- read.table(file=leading.edge.genes.file, header = T, stringsAsFactors = F, sep="\t", quote = "\"")
+leading.edge <- leading.edge.genes.file[leading.edge.genes.file$CORE.ENRICHMENT == "Yes",]
+leading.edge <- data.frame(PROBE=leading.edge$PROBE, RANK.METRIC.SCORE=leading.edge$RANK.METRIC.SCORE)
+leading.edge.genes <- leading.edge$PROB
+colnames(leading.edge.genes.file)
+
+wikipathway.genes <- paste0(getwd(), "/", "Wnt.pathway.WikiPathways.txt")
+wikipathway.genes <- read.table(file=wikipathway.genes, header = F, stringsAsFactors = F, sep="\t", quote = "\"")
+wikipathway.genes <- wikipathway.genes$V1
+noquote(intersect(wikipathway.genes, leading.edge.genes))
 ```
 
 
+# Annotated Wnt pathway diagram from WikiPathways
 
+I have downloaded the WP428 (Wnt Signaling) WikiPathways network using the "Import Network from Public Databases" feature of Cytoscape, and annotated it with the rank file I used as input to my GSEA run (Figure 2). Additionally, the GO term "GO:0090090", "negative regulation of canonical Wnt signaling pathway", which is hit #23 of GSEA's "na_pos" results, has the following genes in common with WikiPathwasy WP428: CSNK1A1, DKK1, DKK2, DVL2, GSK3B, NOTUM, SFRP1, SOX17. All of these genes are in the leading edge of this GSEA result.
+Additionally, there are 44 other genes in the leading edge which are not listed in Figure 2, but which are known to negatively regulated Wnt signalling.
 
+DKK1, SFRP1 are both highly ranked Wnt pathway inhibitors, as can be seen by the (----| ) inhibitory arrows in Figure 2. SFRP1 inhibits signaling of Wnt proteins directly, whereas  DKK1 inhibits LRP5/6, which in turn interact with Frizzled(FZD) receptors (Figure 2). DKK1, a known Wnt antagonist, is epigenetically silenced in a medulloblastoma cell line, and is upregulated upon HDAC inhibition [@DKK1_HDAC]. Epigenetic silencing of SFRP1 leads to increased survival of renal and breast cancers, and re-rexpression of SFRP1 upon treatment with HDAC inhibitors coincides with reduced cell growth and apoptosis in chemoresistant cancers [@SFRP1_HDAC]. 
 
-
+<IMAGE>
 
 
 # R package references
