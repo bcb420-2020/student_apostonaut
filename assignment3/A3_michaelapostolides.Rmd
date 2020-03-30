@@ -277,6 +277,7 @@ Comparing the outputs directly using the tables provided is difficult. There are
 
 <Network Diagram>
 
+
 # Wnt
 
 I have chosen the Wnt pathway as a pathway to investigate in the GSEA non-thresholded results. Wnt-related gene sets are make up 11/296 significant gene sets with p-value threshold of 0.01, including ranks #23 and #44 in "na_pos" GSEA results. There are no Wnt-related terms in the "na_neg" downregulated sets, suggesting that Wnt-related effects are uniquely seen in SAHA-treated dHAECs. There is also literature support for modulation of the Wnt pathway by SAHA.  In the (Götze et al. 2014) paper, they show that SAHA attenuates proliferation and induces apoptosis in Wnt-activated colorectal carcinoma cell lines. In the (Sujeong Jang 2018b) paper, they show that expression of most of the Wnt-related genes they were investigating were highly increased following treatment with HDAC inhibitors.
@@ -315,7 +316,12 @@ Additionally, there are 44 other genes in the leading edge which are not listed 
 DKK1, SFRP1 are both highly ranked Wnt pathway inhibitors, as can be seen by the (----| ) inhibitory arrows in Figure 2. SFRP1 inhibits signaling of Wnt proteins directly, whereas  DKK1 inhibits LRP5/6, which in turn interact with Frizzled(FZD) receptors (Figure 2). DKK1, a known Wnt antagonist, is epigenetically silenced in a medulloblastoma cell line, and is upregulated upon HDAC inhibition [@DKK1_HDAC]. Epigenetic silencing of SFRP1 leads to increased survival of renal and breast cancers, and re-rexpression of SFRP1 upon treatment with HDAC inhibitors coincides with reduced cell growth and apoptosis in chemoresistant cancers [@SFRP1_HDAC]. 
 
 <IMAGE>
+```{r}
+wnt.wikipathways.image <- paste0(getwd(), "/", "Wnt-WikiPathways-Annotated.png")
+include_graphics(img1_path)
+```
 
+![Caption for the picture.]("/files/Wnt-WikiPathways-Annotated.png")
 
 # R package references
 GEOmetadb https://www.bioconductor.org/packages/release/bioc/html/GEOmetadb.html \ 
