@@ -258,17 +258,16 @@ Comparing the outputs directly using the tables provided is difficult. There are
 Below is an initial screenshot of my unannotated network (Figure 1). This network has 3827 edges and 2269 nodes. I used Q-value cuttoffs of 0.1 for the nodes, and 0.375 similarity cuttoff for the edges. 
 
 
-### Figure 1: Unannotated network of GSEA results. Upregulated (red), Downregulated( blue)\ 
+### Figure 1: Unannotated network of GSEA results\ 
 ```{r initial-network, out.width= "100%", message=FALSE, echo=FALSE}
 knitr::include_graphics(paste0(getwd(), '/assignment3/enrichmentmap-initial.png'))
 ```
 
-I tried to annotate the regions with many nodes in clusters. However, this proved to be a challenge. There was a large section in the middle which could not be easily read, and was difficult to label meaningfully. I have displayed my attempt below (Figure 2). For more detailed publication-ready figure, I have used AutoAnnotate to obtain clearer clusters (Figure 3)
+I tried to annotate the regions which have many nodes which are obviously clustered. However, this proved to be a challenge. There was a large section in the middle which could not be easily read, and was difficult to label meaningfully. I have displayed my attempt below (Figure 2). For more detailed publication-ready figure, I have used AutoAnnotate to obtain clearer clusters (Figure 3)
 
-### Figure 2: Annotated network of GSEA results. Upregulated (red), Downregulated( blue)\ 
+### Figure 2: Annotated network of GSEA results\ 
 ```{r annotated-network, out.width= "100%", message=FALSE, echo=FALSE}
 knitr::include_graphics(paste0(getwd(), '/assignment3/annotated-EnrichmentMap.png'))
-
 ```
 
 ## Background on HDACs and HDAC inhibitors
@@ -296,7 +295,7 @@ HDAC4 is also believed to positively regulate SUMOylation of proteins involved i
 
 The wide range of proteins whose functions are regulated by HDAC-dependent deacetylation is reflected in the diverse themes present in Figure 3. It is not possible to investigate all of them in detail. Overall, the literature supports the variety of themes in Figure 3, which result from HDAC inhibition by SAHA in dHAECs. 
 
-### Figure 3: Themed network diagram of GSEA results. Upregulated (red), Downregulated( blue)\    
+### Figure 3: Themed network diagram of GSEA results\    
 ```{r themed-network-diagram, out.width= "100%",  message=FALSE, echo=FALSE}
 knitr::include_graphics(paste0(getwd(), '/assignment3/annotated.dHAECs.SAHA-v2.png'))
 ```
@@ -315,7 +314,7 @@ There is also literature support for modulation of the Wnt pathway by SAHA.  In 
 The Wnt pathway is a well-defined pathway with literature support for SAHA effects, so it makes a good candidate for more detailed investigation. 
 
 
-```{r}
+```{r, message=FALSE, echo=FALSE}
 #THIS SECTION GETS INTERSECTION OF WIKIPATHWAY GENES AND LEADING EDGE GENES FROM GO:0090090
 
 pval <- 0.01
@@ -351,7 +350,7 @@ DKK1 and SFRP1 are both highly ranked Wnt pathway inhibitors, as can be seen by 
 
 
 
-### Figure 4: Highlighting of leading edge genes in Wnt pathway (Wikipathways, WP428). Upregulated (red), Downregulated( blue). Circled genes are leading edge genes of GSEA GO term "GO 0090090"          
+### Figure 4: Highlighting of leading edge genes in Wnt pathway (Wikipathways, WP428).  Circled genes are leading edge genes of GSEA GO term "GO 0090090"          
 
 ```{r out.width= "100%", message=FALSE, echo=FALSE}
 knitr::include_graphics(paste0(getwd(), '/assignment3/Wnt-WikiPathways-Annotated.trimmed.png'))
@@ -361,7 +360,7 @@ knitr::include_graphics(paste0(getwd(), '/assignment3/Wnt-WikiPathways-Annotated
 
 In the original [@HDAC_2017] paper from which this dataset was taken, they propose SAHA as a potential treatment for diabetes on the basis that SAHA causes suppression of EP300 target genes, and has the potential to reduce inflammation. However, there is no mention of the Wnt signalling pathway in this paper.
 
-A search of the literature finds that over-activation of the Wnt signalling pathway may be a contributing factor to diabetes. TCF7L2, which is upregulated in islets of type II diabetes patients [@WNT_ACTIVATION_DIABETES] is inhibited by SOX17 (Figure 4) through inhibition of upstream singalling. This same paper shows that B-catenin, one of the downstream effects of the Wnt pathway, is not detectable in healthy human beta-cells, but is strongly upregulated in type II diabetes [@WNT_ACTIVATION_DIABETES]. Additionally, terminal effectors of Wnt signalling are shown to be upregulated in type II diabetes [@WNT_ACTIVATION_DIABETES]. Another study suggests that inhibition of Wnt signalling may be beneficial in metabolic disease [@WNT_INHIBIT_DIABETES]. 
+A search of the literature finds that over-activation of the Wnt signalling pathway may be a contributing factor to diabetes. TCF7L2, which is upregulated in islets of type II diabetes patients [@WNT_ACTIVATION_DIABETES] is inhibited by SOX17 (Figure 4) through inhibition of upstream singalling. This same paper shows that B-catenin, the downstream product of the canonical Wnt pathway, is not detectable in healthy human beta-cells, but is strongly upregulated in beta-cells of individuals with type II diabetes [@WNT_ACTIVATION_DIABETES]. Additionally, terminal effectors of Wnt signalling are shown to be upregulated in type II diabetes [@WNT_ACTIVATION_DIABETES]. Another study suggests that inhibition of Wnt signalling may be beneficial in metabolic disease [@WNT_INHIBIT_DIABETES]. 
 
 I could not find anything in the literature that specifically investigated the effects of HDAC-inhibitors on the Wnt pathway in diabetes. It is possible that no studies have yet been done which specifically investigate this mechanism. The results in Figure 4 suggest that investigation of SAHA as a treatment option for Wnt-activated diabetes may be a worthwhile research pursuit.
 
