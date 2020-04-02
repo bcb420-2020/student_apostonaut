@@ -1,5 +1,5 @@
 ---
-title: "Assignment 2: Differential expression analysis and investigation of biological effects of SAHA treatment of diabetic human aortic endothelial cells"
+title: "Assignment 3: investigation of biological effects of SAHA treatment of diabetic human aortic endothelial cells using GSEA and Cytoscape"
 output: 
   html_document:
     toc: true
@@ -187,20 +187,13 @@ colnames(topfit)[1] <- "hgnc_symbol"
 
 ```
 
+# Non-Thresholded analysis using GSEA
 
+I used GSEA [@GSEA] for non-thresholded analysis. As was discussed in class, I used both the p-value and log-fold change to compute the rank file. I used the same geneset file which was used in the class homework:\    
 
+[Bader lab .gmt file](http://download.baderlab.org/EM_Genesets/February_01_2020/Human/symbol/Human_GOBP_AllPathways_no_GO_iea_February_01_2020_symbol.gmt)
 
-
-```{r gprofiler-queries, message=FALSE, echo=FALSE}
-# #ALL
-# sign.hits <- topfit[which((topfit$adj.P.Val < pval)),]
-# #SORT BY DECREASING log_FC
-# sign.hits <- sign.hits[order(sign.hits$adj.P, decreasing = TRUE),]
-
-# # GENERATE RANK FILE FOR PRERANKED GSEA
-# rank.df <- sign.hits[c("hgnc_symbol","logFC")]
-
-
+```{r compute-GSEA-ranks}
 #compute ranks
 ranks <- -log(topfit$adj.P.Val, base=10)*sign(topfit$logFC)
 genes <- topfit$hgnc_symbol
@@ -208,30 +201,29 @@ rnk.df <- data.frame(GeneName=genes, rank=ranks, stringsAsFactors = FALSE)
 #sort table by ranks
 rnk.df <- rnk.df[order(rnk.df$rank, decreasing = TRUE),]
 rows <- nrow(rnk.df)
+
 #REMOVE ROWS WITH NO HGNC SYMBOL
 rnk.df <- rnk.df[rnk.df$GeneName != "",]
 rows.no_hgnc <- as.character(rows - nrow(rnk.df))
 #print(paste0("Number of entries without an hgnc symbol: ", rows.no_hgnc))
-write.table(rnk.df, file=paste0(getwd(), "/", "sign_hits.unthresholded.rnk"), quote=FALSE, sep='\t', row.names=FALSE)
 
-#write expression values file
-expression_values <- data.frame(topfit$hgnc_symbol, topfit$logFC)
-write.table(expression_values,  file=paste0(getwd(), "/", "expression_values.tsv"), sep='\t', quote=FALSE, row.names=FALSE )
+# Write rank file
+write.table(rnk.df, file=paste0(getwd(), "/", "sign_hits.unthresholded.rnk"), quote=FALSE, sep='\t', row.names=FALSE)
 
 ```
 
-# Non-Thresholded analysis using GSEA
-
-I used GSEA [@GSEA] for non-thresholded analysis. I used the same geneset file which was used in the class homework:\    
-
-http://download.baderlab.org/EM_Genesets/February_01_2020/Human/symbol/Human_GOBP_AllPathways_no_GO_iea_February_01_2020_symbol.gmt\
 
 ## Summary of enrichment results
+
+I have included a table of the top 15 upregulated and downregulated terms of the GSEA results (Table 1). A summary of the contents for the top hits is as follows:\
+
+* Upregulated: the main themes include: "cognition/learning/memory", "Synaptic signalling", "ion transport/channels", "lipid/lipoprotein" (Table 1).\    
+* Downregulated: the main themes include: "E2F", "DNA replication", "ATR signaling/replication stress", "cell cycle checkpoints" (Table 1).
+
 ```{r}
-#file:///Users/andreeduquette/BCB420/student_apostonaut/assignment3/GSEA_outdir/A3_GSEA_UNTHRESHOLDD.GseaPreranked.1585427734453/gsea_report_for_na_pos_1585427734453.xls
-neg.file <- paste0(getwd(),"/assignment3/GSEA_outdir/A3_GSEA_UNTHRESHOLDD.GseaPreranked.1585427734453/gsea_report_for_na_neg_1585427734453.xls")
+neg.file <- paste0(getwd(),"/assignment3/gsea_report_for_na_neg_1585427734453.xls")
 neg.file <- read.table(file=neg.file, header = T, stringsAsFactors = F, sep="\t", quote = "\"")
-pos.file <- paste0(getwd(),"/assignment3/GSEA_outdir/A3_GSEA_UNTHRESHOLDD.GseaPreranked.1585427734453/gsea_report_for_na_pos_1585427734453.xls")
+pos.file <- paste0(getwd(),"/assignment3/gsea_report_for_na_pos_1585427734453.xls")
 pos.file <- read.table(file=pos.file, header = T, stringsAsFactors = F, sep="\t", quote = "\"")
 
 top.pos <- head(pos.file$NAME, 15)
@@ -239,16 +231,11 @@ top.neg <- head(neg.file$NAME, 15)
 
 df.terms <- data.frame(Upregulated=top.pos, Downregulated=top.neg)
 title <- "Table 1: Comparison of top 15 GSEA upregulated and downregulated gene sets"
-df.terms  %>%
-  kable(caption = title) %>%
-  kable_styling()
+tab <- kable(df.terms, caption = title)
+kable_styling(tab)
 ```
 
 
-I have included a table of the top 15 upregulated and downregulated terms of the GSEA results (Table 1). A summary of the contents for the top hits is as follows:\
-
-* Upregulated: the main themes include: "cognition/learning/memory", "Synaptic signalling", "ion transport/channels", "lipid/lipoprotein" (Table 1).\    
-* Downregulated: the main themes include: "E2F", "DNA replication", "ATR signaling/replication stress", "cell cycle checkpoints" (Table 1).
 
 <!-- How do these results compare to the results from the thresholded analysis in Assignment #2. Compare qualitatively. Is this a straight forward comparison? Why or why not? -->
 ## Comparison of GSEA and g:profiler results
@@ -260,10 +247,29 @@ In the g:profiler results from the previous assignment, the following is seen:\
 Below, a comparison is done between the g:profiler results and the GSEA results:\    
 
 * Upregulated comparison: the upregulated terms have only synapse-related terms in common. There are major differences in the top 15 hits
-* Downregulated comparison: the downregulated terms have "DNA replication" and "cell cycle checkpoint" terms in common. 
+* Downregulated comparison: the downregulated terms have "DNA replication" and "cell cycle checkpoint" terms in common.\    
+
 Comparing the outputs directly using the tables provided is difficult. There are many keywords, and finding themes among terms is time-consuming to do manually.
 
 # Network diagram and HDAC inhibitors
+
+## Initial unannotated network
+
+Below is an initial screenshot of my unannotated network (Figure 1). This network has 3827 edges and 2269 nodes. I used Q-value cuttoffs of 0.1 for the nodes, and 0.375 similarity cuttoff for the edges. 
+
+
+### Figure 1: Unannotated network of GSEA results. Upregulated (red), Downregulated( blue)\ 
+```{r initial-network, out.width= "100%", message=FALSE, echo=FALSE}
+knitr::include_graphics(paste0(getwd(), '/assignment3/enrichmentmap-initial.png'))
+```
+
+I tried to annotate the regions with many nodes in clusters. However, this proved to be a challenge. There was a large section in the middle which could not be easily read, and was difficult to label meaningfully. I have displayed my attempt below (Figure 2). For more detailed publication-ready figure, I have used AutoAnnotate to obtain clearer clusters (Figure 3)
+
+### Figure 2: Annotated network of GSEA results. Upregulated (red), Downregulated( blue)\ 
+```{r annotated-network, out.width= "100%", message=FALSE, echo=FALSE}
+knitr::include_graphics(paste0(getwd(), '/assignment3/annotated-EnrichmentMap.png'))
+
+```
 
 ## Background on HDACs and HDAC inhibitors
 
@@ -275,23 +281,23 @@ HDAC inhibitors such as SAHA inhibit the catalytic activity of HDACs, preventing
 
 In Assignment 2, I showed that regulation of 6 EP300 target genes (VCAN, CD58, CD200,  SIGIRR, CCL2, ICAM2) were downregulated in SAHA-treated dHAECs as compared to DMSO-treated dHAECs. The [@HDAC_2017] paper did not specifically find gene sets in their GSEA analysis which corresponded to these genes, and there are no gene sets in the .gmt file I used for this assignment that relate specifically to EP300. Therefore, I will compare my GSEA+Enrichment Map results with those from the [@HDAC_2017] paper
 
-In the [@HDAC_2017] paper, they also used GSEA and Cytoscape/Enrichment Map to visualize the themes among gene sets. There are many commonalities between Figure 1 (my network) and theirs (Figure 3 in [@HDAC_2017] ). Cell cycle and DNA replication, RNA processing and transport, Insulin siglnaling, and neuronal systems/ion channels/synapses are among the pathways in their figure which are common to Figure 1 in my analysis. 
+In the [@HDAC_2017] paper, they also used GSEA and Cytoscape/Enrichment Map to visualize the themes among gene sets. There are many commonalities between Figure 3 (my network) and theirs (Figure 3 in [@HDAC_2017] ). Cell cycle and DNA replication, RNA processing and transport, Insulin siglnaling, and neuronal systems/ion channels/synapses are among the pathways in their figure which are common to Figure 3 in my analysis. 
 
 
 ## Interpretation of themes in network diagram
 
-Since HDACs are histone modifying proteins, downregulation of the theme "histone modification" is consistent with SAHA treatment (Figure 1). 
+Since HDACs are histone modifying proteins, downregulation of the theme "histone modification" is consistent with SAHA treatment (Figure 3). 
 
-Class I HDACs, when over-expressed, result in over-proliferation phenotypes, and their inhibition is known to cause cell cycle arrest, growth inhibition, and apoptosos in cancer [@HDAC_CANCER]. In Figure 1, we see themes such as "cell cycle g2", "chromatid metaphase segregation", and "mitotic checkpoint integrity" being downregulated, which are related to cell cycle arrest and growth inhibition. This is consistent with inhibition of class I HDACs by SAHA. 
+Class I HDACs, when over-expressed, result in over-proliferation phenotypes, and their inhibition is known to cause cell cycle arrest, growth inhibition, and apoptosos in cancer [@HDAC_CANCER]. In Figure 3, we see themes such as "cell cycle g2", "chromatid metaphase segregation", and "mitotic checkpoint integrity" being downregulated, which are related to cell cycle arrest and growth inhibition. This is consistent with inhibition of class I HDACs by SAHA. 
 
-Class II HDACs have a more mixed function, and can be pro-proliferative or tumor suppressors depending on the context. HDAC4 activity is known to promote DNA repair and result in a block in cell proliferation [@HDAC_CANCER], and HDAC4 activity is known to be inhibited by SAHA, since it is a class II HDAC [@SAHA_HDAC]. In Figure 1, the downregulation of themes "DNA repair/replication" (the theme with the most gene sets), "double-stranded break repair", "D-loop recombination repair" are consistent with inhibition of HDAC4 by SAHA. 
+Class II HDACs have a more mixed function, and can be pro-proliferative or tumor suppressors depending on the context. HDAC4 activity is known to promote DNA repair and result in a block in cell proliferation [@HDAC_CANCER], and HDAC4 activity is known to be inhibited by SAHA, since it is a class II HDAC [@SAHA_HDAC]. In Figure 3, the downregulation of themes "DNA repair/replication" (the theme with the most gene sets), "double-stranded break repair", "D-loop recombination repair" are consistent with inhibition of HDAC4 by SAHA. 
 
-HDAC4 is also believed to positively regulate SUMOylation of proteins involved in cognitive function [@HDAC4_SUMO]. Since SAHA downregulates HDAC4, this could explain the downregulation of the "SUMOylation, RNA nuclear export" theme in Figure 1.
+HDAC4 is also believed to positively regulate SUMOylation of proteins involved in cognitive function [@HDAC4_SUMO]. Since SAHA downregulates HDAC4, this could explain the downregulation of the "SUMOylation, RNA nuclear export" theme in Figure 3.
 
-The wide range of proteins whose functions are regulated by HDAC-dependent deacetylation is reflected in the diverse themes present in Figure 1. It is not possible to investigate all of them in detail. Overall, the literature supports the variety of themes in Figure 1, which result from HDAC inhibition by SAHA in dHAECs. 
+The wide range of proteins whose functions are regulated by HDAC-dependent deacetylation is reflected in the diverse themes present in Figure 3. It is not possible to investigate all of them in detail. Overall, the literature supports the variety of themes in Figure 3, which result from HDAC inhibition by SAHA in dHAECs. 
 
-### Figure 1: Themed network diagram of GSEA results. Upregulated (red), Downregulated( blue)\    
-```{r themed-network-diagram, message=FALSE, echo=FALSE}
+### Figure 3: Themed network diagram of GSEA results. Upregulated (red), Downregulated( blue)\    
+```{r themed-network-diagram, out.width= "100%",  message=FALSE, echo=FALSE}
 knitr::include_graphics(paste0(getwd(), '/assignment3/annotated.dHAECs.SAHA-v2.png'))
 ```
 
@@ -300,7 +306,8 @@ knitr::include_graphics(paste0(getwd(), '/assignment3/annotated.dHAECs.SAHA-v2.p
 
 
 ## Background and rationale
-I have chosen the Wnt pathway as a pathway to investigate in the GSEA non-thresholded results. Wnt-related gene sets are make up 11/296 significant gene sets with p-value threshold of 0.01, including ranks #23 (NEGATIVE REGULATION OF CANONICAL WNT SIGNALING PATHWAY%GOBP%GO:0090090) and #44 ("NEGATIVE REGULATION OF WNT SIGNALING PATHWAY%GOBP%GO:0030178") in "na_pos" GSEA results. There are no Wnt-related terms in the "na_neg" downregulated sets, suggesting that Wnt-related effects are uniquely seen in SAHA-treated dHAECs. 
+
+I have chosen the Wnt pathway as a pathway to investigate in the GSEA non-thresholded results. Wnt-related gene sets are make up 11/296 significant gene sets with p-value threshold of 0.01, including ranks #23 (NEGATIVE REGULATION OF CANONICAL WNT SIGNALING PATHWAY%GOBP%GO:0090090) and #44 ("NEGATIVE REGULATION OF WNT SIGNALING PATHWAY%GOBP%GO:0030178") in "na_pos" GSEA results. There are no Wnt-related terms in the "na_neg" downregulated sets, suggesting that upregulation of Wnt-related genes is uniquely seen in SAHA-treated dHAECs. 
 
 The Wnt pathway is an evolutionarily conserved signalling pathway, and its aberrant activation is know to play a central role in a wide variety of cancers [@WNT_CANCER]. 
 There is also literature support for modulation of the Wnt pathway by SAHA.  In the (Götze et al. 2014) paper, they show that SAHA attenuates proliferation and induces apoptosis in Wnt-activated colorectal carcinoma cell lines. In the (Sujeong Jang 2018b) paper, they show that expression of most of the Wnt-related genes they were investigating were highly increased following treatment with HDAC inhibitors.
@@ -309,6 +316,8 @@ The Wnt pathway is a well-defined pathway with literature support for SAHA effec
 
 
 ```{r}
+#THIS SECTION GETS INTERSECTION OF WIKIPATHWAY GENES AND LEADING EDGE GENES FROM GO:0090090
+
 pval <- 0.01
 pos.file.sign <- pos.file[pos.file$NOM.p.val < pval,]
 wnt.pos.sign <- pos.file.sign[grep("WNT", pos.file.sign$NAME),]
@@ -325,20 +334,24 @@ leading.edge.genes <- leading.edge$PROB
 wikipathway.genes <- paste0(getwd(),  "/assignment3/Wnt.pathway.WikiPathways.txt")
 wikipathway.genes <- read.table(file=wikipathway.genes, header = F, stringsAsFactors = F, sep="\t", quote = "\"")
 wikipathway.genes <- wikipathway.genes$V1
-noquote(intersect(wikipathway.genes, leading.edge.genes))
+intersected.genes <- data.frame(genes=noquote(intersect(wikipathway.genes, leading.edge.genes)))
+
+title <- "Panel 1: Genes common between GO term GO0090090 and WP428 "
+tab <- kable(intersected.genes, caption = title)
+kable_styling(tab)
 ```
 
 
 ## Annotated Wnt pathway diagram from WikiPathways
 
-I have downloaded the WP428 (Wnt Signaling) WikiPathways network using the "Import Network from Public Databases" feature of Cytoscape, and annotated it with the rank file I used as input to my GSEA run (Figure 2). Additionally, the GO term "GO:0090090", "negative regulation of canonical Wnt signaling pathway", which is hit #23 of GSEA's "na_pos" results, has the following genes in common with WikiPathway WP428: CSNK1A1, DKK1, DKK2, DVL2, GSK3B, NOTUM, SFRP1, SOX17. All of these genes are in the leading edge of this GSEA result.
-There are 44 other genes in the leading edge which are not listed in Figure 2, but which are known to negatively regulated Wnt signalling.
+I have downloaded the WP428 (Wnt Signaling) WikiPathways network using the "Import Network from Public Databases" feature of Cytoscape, and annotated it with the rank file I used as input to my GSEA run (Figure 4). Additionally, the GO term "GO:0090090", "negative regulation of canonical Wnt signaling pathway", which is hit #23 of GSEA's "na_pos" results, has 8 genes in common with WikiPathway WP428 (Panel 1). All of these genes are in the leading edge of this GSEA result.
+There are 44 other genes in the leading edge which are not listed in Figure 4, but which are known to negatively regulated Wnt signalling.
 
-DKK1 and SFRP1 are both highly ranked Wnt pathway inhibitors, as can be seen by the (----| ) inhibitory arrows in Figure 2. SFRP1 inhibits signaling of Wnt proteins directly, whereas  DKK1 inhibits LRP5/6, which in turn interact with Frizzled(FZD) receptors (Figure 2). DKK1, a known Wnt antagonist, is epigenetically silenced in a medulloblastoma cell line, and is upregulated upon HDAC inhibition [@DKK1_HDAC]. Epigenetic silencing of SFRP1 leads to increased survival of renal and breast cancers, and re-rexpression of SFRP1 upon treatment with HDAC inhibitors coincides with reduced cell growth and apoptosis in chemoresistant cancers [@SFRP1_HDAC]. Additionally, promoter methylation (i.e. repression of transcription) of Wnt antagonists DKK1 and SFRP1 are known events which lead to hyper-activation of the Wnt pathway [@WNT_CANCER]. It then follows that an increase in their expression would have the effect of suppressing Wnt signalling. 
+DKK1 and SFRP1 are both highly ranked Wnt pathway inhibitors, as can be seen by the (----| ) inhibitory arrows in Figure 4. SFRP1 inhibits signaling of Wnt proteins directly, whereas  DKK1 inhibits LRP5/6, which in turn interact with Frizzled(FZD) receptors (Figure 4). DKK1, a known Wnt antagonist, is epigenetically silenced in a medulloblastoma cell line, and is upregulated upon HDAC inhibition [@DKK1_HDAC]. Epigenetic silencing of SFRP1 leads to increased survival of renal and breast cancers, and re-rexpression of SFRP1 upon treatment with HDAC inhibitors coincides with reduced cell growth and apoptosis in chemoresistant cancers [@SFRP1_HDAC]. Additionally, promoter methylation (i.e. repression of transcription) of Wnt antagonists DKK1 and SFRP1 are known events which lead to hyper-activation of the Wnt pathway [@WNT_CANCER]. It then follows that an increase in their expression would have the effect of suppressing Wnt signalling. 
 
 
 
-### Figure 2: Highlighting of leading edge genes in Wnt pathway (Wikipathways, WP428). Upregulated (red), Downregulated( blue). Circled genes are leading edge genes of GSEA GO term "GO:0090090"\          
+### Figure 4: Highlighting of leading edge genes in Wnt pathway (Wikipathways, WP428). Upregulated (red), Downregulated( blue). Circled genes are leading edge genes of GSEA GO term "GO 0090090"          
 
 ```{r out.width= "100%", message=FALSE, echo=FALSE}
 knitr::include_graphics(paste0(getwd(), '/assignment3/Wnt-WikiPathways-Annotated.trimmed.png'))
@@ -348,15 +361,13 @@ knitr::include_graphics(paste0(getwd(), '/assignment3/Wnt-WikiPathways-Annotated
 
 In the original [@HDAC_2017] paper from which this dataset was taken, they propose SAHA as a potential treatment for diabetes on the basis that SAHA causes suppression of EP300 target genes, and has the potential to reduce inflammation. However, there is no mention of the Wnt signalling pathway in this paper.
 
-A search of the literature finds that over-activation of the Wnt signalling pathway may be a contributing factor to diabetes. TCF7L2, which is upregulated in islets of type II diabetes patients [@WNT_ACTIVATION_DIABETES] is inhibited by SOX17 (Figure 2) through inhibition of upstream singalling. This same paper shows that B-catenin, one of the downstream effects of the Wnt pathway, is not detectable in healthy human beta-cells, but is strongly upregulated in type II diabetes [@WNT_ACTIVATION_DIABETES]. Additionally, terminal effectors of Wnt signalling are shown to be upregulated in type II diabetes [@WNT_ACTIVATION_DIABETES]. Another study suggests that inhibition of Wnt signalling may be beneficial in metabolic disease [@WNT_INHIBIT_DIABETES]. 
+A search of the literature finds that over-activation of the Wnt signalling pathway may be a contributing factor to diabetes. TCF7L2, which is upregulated in islets of type II diabetes patients [@WNT_ACTIVATION_DIABETES] is inhibited by SOX17 (Figure 4) through inhibition of upstream singalling. This same paper shows that B-catenin, one of the downstream effects of the Wnt pathway, is not detectable in healthy human beta-cells, but is strongly upregulated in type II diabetes [@WNT_ACTIVATION_DIABETES]. Additionally, terminal effectors of Wnt signalling are shown to be upregulated in type II diabetes [@WNT_ACTIVATION_DIABETES]. Another study suggests that inhibition of Wnt signalling may be beneficial in metabolic disease [@WNT_INHIBIT_DIABETES]. 
 
-I could not find anything in the literature that specifically investigated the effects of HDAC-inhibitors on the Wnt pathway in diabetes. It is possible that no studies have yet been done which specifically investigate this mechanism. The results in Figure 2 suggest that investigation of SAHA as a treatment option for Wnt-activated diabetes may be a worthwhile research pursuit.
-
+I could not find anything in the literature that specifically investigated the effects of HDAC-inhibitors on the Wnt pathway in diabetes. It is possible that no studies have yet been done which specifically investigate this mechanism. The results in Figure 4 suggest that investigation of SAHA as a treatment option for Wnt-activated diabetes may be a worthwhile research pursuit.
 
 # Summary
 
-
-
+Visualization of GSEA results of SAHA-treated dHAECs in Cytoscape demonstrates that the HDAC inhibitor SAHA affects a huge number of biological processes. A thorough investigation of all these processes is beyond the scope of this assignment. My investigation of Wnt signalling pathway alterations in the [@HDAC_2017] dataset suggests the authors cherry-picked EP300 target genes as an effect of treating dHAECs with SAHA, and that other diabetes-related effects are seen.  Further investigation into the effects of SAHA on  cellular processes is needed. Overall, my findings are consistent with the literature, with the results and conclusions of the [@HDAC_2017]  paper, and opens up the possibility for extending SAHA's scope for the treatment of diabetes.
 
 
 # R package references
