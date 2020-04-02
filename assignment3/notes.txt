@@ -76,6 +76,16 @@ HDAC expression:
 "HDIs bind to the zinc-containing catalytic domain of the histone deacetylase (HDACs) and they repress the deacetylase enzymatic activity. " (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6480157/)
 -interestingly, expression of HDACs in SAHA-treated dHAECs is increased for the mostpart:
 
+APRIL 2 2020
+I have mostly completed all aspects of the assignment. I have elected not to automate cytoscape and GSEA, as cytoscape has not been working on my machine any longer, and I suspect that similar issues will arise when trying to automate in the R notebook, as it seems the application needs to be open on my machine in order to run it from R. 
+Additionally, I have only 4G of RAM on my computer, and running GSEA and Cytoscape is time-consuming. I simply don't have time to test this process to ensure that my notebook will compile.
+The theme network that I have in my final report is not as good as I would like. Unfortunately I could not improve it further, since it seems that Cytoscape now requires more RAM than I have on my machine. It is possibly due to an update from Cytoscape, or installing apps within it. It is hard to say. 
+I have decided instead to go for a more detailed literature review of the topic of HDACs and SAHA, and focus more on the biology of the Wnt pathway instead of the automation.
 
+For future reference, automation info for GSEA and Cytoscape is here (for when I get a better machine!):
 
 Automate GSEA and Cytoscape: https://baderlab.github.io/Cytoscape_workflows/EnrichmentMapPipeline/Protocol2_createEM.html
+
+The docker command I'm using to run my container is as follows:
+
+
