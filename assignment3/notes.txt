@@ -88,4 +88,4 @@ Automate GSEA and Cytoscape: https://baderlab.github.io/Cytoscape_workflows/Enri
 
 The docker command I'm using to run my container is as follows:
 
-
+$ docker run -v /Users/andreeduquette/Sandbox/student_apostonaut:/home/username -e USER=username -e PASSWORD=password -p 8787:8787 geometadb_edger_rnotebooks_heatmap_gprofiler_kable:latest
