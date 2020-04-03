@@ -379,6 +379,7 @@ summary {
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#differential-gene-expression">Differential Gene Expression</a></li>
 <li><a href="#non-thresholded-analysis-using-gsea">Non-Thresholded analysis using GSEA</a><ul>
+<li><a href="#gsea-command-line-code">GSEA command line code</a></li>
 <li><a href="#summary-of-enrichment-results">Summary of enrichment results</a></li>
 <li><a href="#comparison-of-gsea-and-gprofiler-results">Comparison of GSEA and g:profiler results</a></li>
 </ul></li>
@@ -431,6 +432,11 @@ rows.no_hgnc &lt;- as.character(rows - nrow(rnk.df))
 
 # Write rank file
 write.table(rnk.df, file=paste0(getwd(), &quot;/&quot;, &quot;sign_hits.unthresholded.rnk&quot;), quote=FALSE, sep='\t', row.names=FALSE)</code></pre>
+<div id="gsea-command-line-code" class="section level2">
+<h2>GSEA command line code</h2>
+<p>I used -plot_top_x 100 to allow me to see the leading edge of the top 100 genes. This allowed me to obtain the leading edge genes for the top 100 hits, which allowed me to further investigate genes in Figure 4.</p>
+<pre><code>/path/to/GSEA_4.0.3/gsea-cli.sh GSEAPreranked -gmx $gmt -nperm 1000 -set_max 200 -set_min 15 -rnk $rnk -collapse false -scoring_scheme weighted -rpt_label A3_GSEA_UNTHRESHOLDD -plot_top_x 100 -rnd_seed 12345 -out $outdir</code></pre>
+</div>
 <div id="summary-of-enrichment-results" class="section level2">
 <h2>Summary of enrichment results</h2>
 <p>I have included a table of the top 15 upregulated and downregulated terms of the GSEA results (Table 1). A summary of the contents for the top hits is as follows:<br />
@@ -628,8 +634,8 @@ NUCLEAR DNA REPLICATION%GOBP%<a href="GO:0033260" class="uri">GO:0033260</a>
 </div>
 <div id="common-themes-between-my-analysis-and-the-raferi-et.-al.papers-analysis" class="section level2">
 <h2>Common themes between my analysis and the Raferi et. al. paper’s analysis</h2>
-<p>In Assignment 2, I showed that regulation of 6 EP300 target genes (VCAN, CD58, CD200, SIGIRR, CCL2, ICAM2) were downregulated in SAHA-treated dHAECs as compared to DMSO-treated dHAECs. The <span class="citation">(Rafehi et al. 2017)</span> paper did not specifically find gene sets in their GSEA analysis which corresponded to these genes, and there are no gene sets in the .gmt file I used for this assignment that relate specifically to EP300. Therefore, I will compare my GSEA+Enrichment Map results with those from the <span class="citation">(Rafehi et al. 2017)</span> paper</p>
-<p>In the <span class="citation">(Rafehi et al. 2017)</span> paper, they also used GSEA and Cytoscape/Enrichment Map to visualize the themes among gene sets. There are many commonalities between Figure 3 (my network) and theirs (Figure 3 in <span class="citation">(Rafehi et al. 2017)</span> ). Cell cycle and DNA replication, RNA processing and transport, Insulin siglnaling, and neuronal systems/ion channels/synapses are among the pathways in their figure which are common to Figure 3 in my analysis.</p>
+<p>In Assignment 2, I showed that regulation of 6 EP300 target genes (VCAN, CD58, CD200, SIGIRR, CCL2, ICAM2) were downregulated in SAHA-treated dHAECs as compared to DMSO-treated dHAECs, which is what the Rafehi et al. paper also found. Neither my analysis nor the <span class="citation">(Rafehi et al. 2017)</span> paper found gene sets from GSEA analysis which correspond to these genes, and there are no gene sets in the .gmt file I used for this assignment that relate specifically to EP300. Therefore, I will compare my GSEA+Enrichment Map results with those from the <span class="citation">(Rafehi et al. 2017)</span> paper</p>
+<p>In the <span class="citation">(Rafehi et al. 2017)</span> paper, they also used GSEA and Cytoscape/Enrichment Map to visualize the themes among gene sets. There are many commonalities between Figure 3 (my network) and theirs (Figure 3 in <span class="citation">(Rafehi et al. 2017)</span> ). Cell cycle and DNA replication, RNA processing and transport, Insulin siglnaling, and neuronal systems/ion channels/synapses are among the pathways in their figure which are common to Figure 3 in my analysis, although they did not include as detailed a look at the landscape as I do in Figure 3.</p>
 </div>
 <div id="interpretation-of-themes-in-network-diagram" class="section level2">
 <h2>Interpretation of themes in network diagram</h2>
@@ -653,7 +659,7 @@ NUCLEAR DNA REPLICATION%GOBP%<a href="GO:0033260" class="uri">GO:0033260</a>
 <p>The Wnt pathway is a well-defined pathway with literature support for SAHA effects, so it makes a good candidate for more detailed investigation.</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-Panel 1: Genes common between GO term GO0090090 and WP428
+Panel 1: Leading edge genes of GO term GO0090090 also in WP428
 </caption>
 <thead>
 <tr>
@@ -708,7 +714,7 @@ SOX17
 </div>
 <div id="annotated-wnt-pathway-diagram-from-wikipathways" class="section level2">
 <h2>Annotated Wnt pathway diagram from WikiPathways</h2>
-<p>I have downloaded the WP428 (Wnt Signaling) WikiPathways network using the “Import Network from Public Databases” feature of Cytoscape, and annotated it with the rank file I used as input to my GSEA run (Figure 4). Additionally, the GO term “<a href="GO:0090090" class="uri">GO:0090090</a>”, “negative regulation of canonical Wnt signaling pathway”, which is hit #23 of GSEA’s “na_pos” results, has 8 genes in common with WikiPathway WP428 (Panel 1). All of these genes are in the leading edge of this GSEA result. There are 44 other genes in the leading edge which are not listed in Figure 4, but which are known to negatively regulated Wnt signalling.</p>
+<p>I have downloaded the WP428 (Wnt Signaling) WikiPathways network using the “Import Network from Public Databases” feature of Cytoscape, and annotated it with the rank file I used as input to my GSEA run (Figure 4). Additionally, the GO term “<a href="GO:0090090" class="uri">GO:0090090</a>”, “negative regulation of canonical Wnt signaling pathway”, which is hit #23 of GSEA’s “na_pos” results, has 8 leading edge genes in common with WikiPathway WP428 (Panel 1). All of these genes are in the leading edge of this GSEA result. There are 44 other genes in the leading edge which are not listed in Figure 4, but which are known to negatively regulate Wnt signalling.</p>
 <p>DKK1 and SFRP1 are both highly ranked Wnt pathway inhibitors, as can be seen by the (—-| ) inhibitory arrows in Figure 4. SFRP1 inhibits signaling of Wnt proteins directly, whereas DKK1 inhibits LRP5/6, which in turn interact with Frizzled(FZD) receptors (Figure 4). DKK1, a known Wnt antagonist, is epigenetically silenced in a medulloblastoma cell line, and is upregulated upon HDAC inhibition <span class="citation">(Vibhakar 2007)</span>. Epigenetic silencing of SFRP1 leads to increased survival of renal and breast cancers, and re-rexpression of SFRP1 upon treatment with HDAC inhibitors coincides with reduced cell growth and apoptosis in chemoresistant cancers <span class="citation">(Cooper et al. 2012)</span>. Additionally, promoter methylation (i.e. repression of transcription) of Wnt antagonists DKK1 and SFRP1 are known events which lead to hyper-activation of the Wnt pathway <span class="citation">(Andel 2019)</span>. It then follows that an increase in their expression would have the effect of suppressing Wnt signalling.</p>
 <div id="figure-4-highlighting-of-leading-edge-genes-in-wnt-pathway-wikipathways-wp428.-circled-genes-are-leading-edge-genes-of-gsea-go-term-go-0090090" class="section level3">
 <h3>Figure 4: Highlighting of leading edge genes in Wnt pathway (Wikipathways, WP428). Circled genes are leading edge genes of GSEA GO term “GO 0090090”</h3>
